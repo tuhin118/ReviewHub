@@ -1,133 +1,26 @@
 
-Project Engineer (ChatGPT)-এর সর্বশেষ Technical Review-এর ১৫টি নির্দেশনা অনুযায়ী পূর্ববর্তী চারটি ডকুমেন্ট (PROJECT_REQUIREMENTS.md, SECURITY_DOCUMENTATION.md, SYSTEM_ARCHITECTURE.md, OPEN_QUESTIONS.md) সম্পূর্ণভাবে সংশোধন করা হলো এবং ENGINEERING_REVIEW.md নামে একটি নতুন ডকুমেন্ট তৈরি করা হলো।
-নির্দেশনা অনুযায়ী:
-আগের সব Confirmed Decisions অপরিবর্তিত রাখা হয়েছে।
-কোনো Source Code লেখা হয়নি।
-প্রথম ধাপের PROJECT_CONTEXT.md, DEVELOPMENT_PLAN.md, README.md এবং PROJECT_STRUCTURE.md পরিবর্তন করা হয়নি।
-১. ENGINEERING_REVIEW.md (নতুন ডকুমেন্ট)
-Markdown
-# ReviewHub — Engineering Review & Technical Decisions Record
-
-> **ডকুমেন্টের ধরন:** Technical Review Record  
-> **রিভিউ প্রদানকারী:** Project Engineer (ChatGPT)  
-> **ডকুমেন্টেশন প্রস্তুতকারক:** Senior Technical Documentation Engineer (Gemini)  
-> **অবস্থা:** অনুমোদিত রিভিউ অনুযায়ী ডকুমেন্টেশন হালনাগাদ সম্পন্ন (কোনো Source Code লেখা হয়নি)
-
----
-
-## ১. রিভিউয়ের সারসংক্ষেপ ও উদ্দেশ্য
-**ReviewHub** প্রজেক্টের PRD, Security Documentation এবং System Architecture পর্যালোচনার পর Project Engineer ১৫টি সুনির্দিষ্ট প্রযুক্তিগত সিদ্ধান্ত, সীমাবদ্ধতা এবং নিরাপত্তা সংশোধনী নির্ধারণ করেছেন। এই ডকুমেন্টটি প্রতিটি সিদ্ধান্তের কারিগরি কারণ, পূর্ববর্তী সিদ্ধান্তের সাথে সামঞ্জস্য এবং সংশ্লিষ্ট ডকুমেন্টগুলোতে আনা পরিবর্তনের পূর্ণাঙ্গ রেকর্ড।
-
----
-
-## ২. Technical Review-এর ১৫টি সিদ্ধান্ত ও বাস্তবায়ন নির্দেশনা
-
-### সিদ্ধান্ত ১: PBKDF2 ও Workers-এর 10ms CPU সীমার বাস্তব Benchmark বাধ্যতামূলক
-- **মূল নির্দেশনা:** Cloudflare Workers Free প্ল্যানের ১০ মিলিসেকেন্ড CPU সময়সীমার মধ্যে PBKDF2 নিরাপদে চলবে বলে ধরে নেওয়া যাবে না; বাস্তব Benchmark করতে হবে।
-- **কারিগরি কারণ:** Cloudflare Workers Free প্ল্যানে প্রতি HTTP রিকোয়েস্টে কঠোর ১০ মিলিসেকেন্ড CPU সীমা রয়েছে। উচ্চ Iteration-এর PBKDF2 এই সীমা অতিক্রম করলে Worker `Exceeded CPU Time Limits` এরর দিয়ে রিকোয়েস্ট ব্যর্থ করে দিতে পারে।
-- **ডকুমেন্ট পরিবর্তন:** `SECURITY_DOCUMENTATION.md`, `SYSTEM_ARCHITECTURE.md` এবং `OPEN_QUESTIONS.md`-এ Benchmark-পূর্ব অনুমান বাদ দিয়ে **Pre-Implementation CPU Benchmark Gate** যুক্ত করা হয়েছে।
-
-### সিদ্ধান্ত ২: প্রতিটি Request-এ D1 Counter Write নিষিদ্ধ
-- **মূল নির্দেশনা:** প্রতিটি Request-এ Cloudflare D1-এ কাউন্টার Write করা যাবে না।
-- **কারিগরি কারণ:** D1 Free টিয়ারে দৈনিক Row Write সীমা সীমিত (১,০০,০০০/দিন) এবং সাধারণ ব্রাউজিং বা API রিকোয়েস্টে প্রতিবার DB Write করলে লেটেন্সি বাড়বে ও কোটা দ্রুত শেষ হয়ে সাইট অচল হয়ে পড়বে।
-- **ডকুমেন্ট পরিবর্তন:** `SYSTEM_ARCHITECTURE.md` এবং `SECURITY_DOCUMENTATION.md`-এ **D1 Write-Avoidance Policy** যুক্ত করা হয়েছে। কেবল অর্থবহ স্টেট পরিবর্তনে (যেমন Login Failure, Session Create, Ban, Post/Review Submit, Audit Log) D1 Write হবে।
-
-### সিদ্ধান্ত ৩: Workers Rate Limiting API-এর Approximate ও Eventually Consistent প্রকৃতি বিবেচনা
-- **মূল নির্দেশনা:** Workers Rate Limiting API-এর Approximate ও Eventually Consistent আচরণ বিবেচনায় রেখে ব্যবহার করতে হবে।
-- **কারিগরি কারণ:** Workers Rate Limiting binding-এর কাউন্টার প্রতিটি Cloudflare লোকেশনে আলাদাভাবে থাকে, কেবল ১০ বা ৬০ সেকেন্ডের উইন্ডো সমর্থন করে এবং ডকুমেন্টেশন অনুযায়ী এটি permissive ও eventually consistent। ফলে এটি দিয়ে কঠোর Account Lockout বা সুনির্দিষ্ট বৈশ্বিক গণনা করা নিরাপদ নয়।
-- **ডকুমেন্ট পরিবর্তন:** `SECURITY_DOCUMENTATION.md` ও `SYSTEM_ARCHITECTURE.md`-এ স্পষ্ট করা হয়েছে যে Workers Rate Limiting API কেবল **প্রথম স্তরের Burst/Abuse থ্রটলিং** হিসেবে কাজ করবে; ৫-বার ভুল পাসওয়ার্ডের কঠোর Account Lockout সর্বদা **Cloudflare D1**-এর মাধ্যমে নিয়ন্ত্রিত হবে।
-
-### সিদ্ধান্ত ৪: D1 হবে মূল Database ও স্থায়ী Ban Record-এর একক উৎস
-- **মূল নির্দেশনা:** Cloudflare D1 মূল Database এবং Permanent/Authoritative Ban Record সংরক্ষণের প্রধান মাধ্যম হবে।
-- **কারিগরি কারণ:** Ban ও User State-এর জন্য স্ট্রং কনসিসটেন্সি এবং রিলেশনাল ইন্টেগ্রিটি প্রয়োজন, যা D1 (SQLite) নিশ্চিত করে।
-- **ডকুমেন্ট পরিবর্তন:** `SYSTEM_ARCHITECTURE.md` ও `SECURITY_DOCUMENTATION.md`-এ D1-কে একক System of Record ও Authoritative Ban Store হিসেবে চূড়ান্ত করা হয়েছে।
-
-### সিদ্ধান্ত ৫: KV প্রধান Rate Limiting Counter Store হবে না
-- **মূল নির্দেশনা:** Cloudflare KV-কে প্রধান Rate Limiting Counter Store হিসেবে ব্যবহার করা যাবে না।
-- **কারিগরি কারণ:** KV একটি eventually consistent কী-ভ্যালু স্টোর এবং Free টিয়ারে এর দৈনিক Write সীমা অত্যন্ত কম, যা প্রতি-রিকোয়েস্ট Rate Limit কাউন্টারের জন্য অনুপযুক্ত।
-- **ডকুমেন্ট পরিবর্তন:** `SYSTEM_ARCHITECTURE.md`, `SECURITY_DOCUMENTATION.md` এবং `OPEN_QUESTIONS.md` থেকে KV-কে Rate Limiting Store বিকল্প হিসেবে বাদ দেওয়া হয়েছে।
-
-### সিদ্ধান্ত ৬: প্রথম Admin-এর জন্য One-time Secure Bootstrap ও বাধ্যতামূলক TOTP 2FA
-- **মূল নির্দেশনা:** প্রথম Admin অ্যাকাউন্ট One-time Secure Bootstrap প্রক্রিয়ায় তৈরি হবে এবং Admin-এর জন্য TOTP-ভিত্তিক 2FA বাধ্যতামূলক থাকবে।
-- **কারিগরি কারণ:** Admin প্যানেলে পুরো প্ল্যাটফর্মের Ban, Publisher Approval ও Post Approval ক্ষমতা থাকে। কেবল পাসওয়ার্ডের ওপর নির্ভর না করে TOTP 2FA এবং One-time Bootstrap (যা ব্যবহারের পর অকার্যকর হয়) যুক্ত করলে Admin অ্যাকাউন্ট টেকওভার ঝুঁকি বহুগুণ কমে।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SECURITY_DOCUMENTATION.md`, `SYSTEM_ARCHITECTURE.md`-এ One-time Bootstrap ও Mandatory Admin TOTP 2FA যুক্ত করা হয়েছে এবং `OPEN_QUESTIONS.md`-এ মূল সিদ্ধান্তটি Resolved হিসেবে চিহ্নিত হয়েছে।
-
-### সিদ্ধান্ত ৭: Audit Logs হবে Application-level Append-only (সম্পূর্ণ Immutable দাবি নয়)
-- **মূল নির্দেশনা:** Admin Audit Logs-কে Application-level Append-only হিসেবে নথিভুক্ত করতে হবে; Storage বা Cryptographic স্তরে "সম্পূর্ণ Immutable" দাবি করা যাবে না।
-- **কারিগরি কারণ:** অ্যাপ্লিকেশন কোডে Audit Log এডিট বা ডিলিট করার কোনো API না থাকলেও, Cloudflare অ্যাকাউন্ট বা D1 কনসোলের সরাসরি মালিকানা থাকা ব্যক্তি টেকনিক্যালি টেবিল অ্যাক্সেস করতে পারেন। তাই অতিরঞ্জিত নিরাপত্তা দাবি পরিহার করা হয়েছে।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SECURITY_DOCUMENTATION.md` এবং `SYSTEM_ARCHITECTURE.md`-এ সঠিক পরিভাষা (**Application-level Append-only**) প্রতিস্থাপন করা হয়েছে।
-
-### সিদ্ধান্ত ৮: Publisher-এর Approved Post Edit-এ Revision ওয়ার্কফ্লো
-- **মূল নির্দেশনা:** Publisher কোনো `Approved` পোস্ট সম্পাদনা করলে নতুন একটি `Pending` Revision তৈরি হবে। Admin নতুন Revision-টি Approve না করা পর্যন্ত পুরোনো `Approved` সংস্করণটিই Public হিসেবে প্রদর্শিত হতে থাকবে।
-- **কারিগরি কারণ:** এতে একদিকে Approved পোস্টে হঠাৎ ক্ষতিকর লিংক বা স্প্যাম ঢুকিয়ে দেওয়ার ঝুঁকি বন্ধ হয়, অন্যদিকে মডারেশন চলাকালীন বৈধ পোস্ট ও তার আগের রিভিউ-রেটিং Public পেজ থেকে হারিয়ে যায় না।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md` (FR-4) ও `SYSTEM_ARCHITECTURE.md` (`items` + `item_revisions` ডেটা মডেল)-এ Revision-ভিত্তিক মডারেশন যুক্ত করা হয়েছে এবং `OPEN_QUESTIONS.md`-এ এটি Resolved হয়েছে।
-
-### সিদ্ধান্ত ৯: Posting Ban-এর পূর্ণ পরিধি নির্ধারণ
-- **মূল নির্দেশনা:** Posting Ban থাকা অবস্থায় User নতুন Post, Review, Rating এবং বিদ্যমান কোনো Content Edit করতে পারবে না; তবে Login ও Public Browsing চালু থাকবে।
-- **কারিগরি কারণ:** অস্পষ্টতা দূর করে সব ধরনের Write/Edit কন্টেন্ট অ্যাকশন বন্ধ রাখা নিশ্চিত করা হয়েছে, যাতে Ban-প্রাপ্ত ইউজার পুরোনো পোস্ট বা রিভিউ এডিট করে অপব্যবহার অব্যাহত রাখতে না পারে।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md` (FR-5), `SECURITY_DOCUMENTATION.md` এবং `OPEN_QUESTIONS.md`-এ Posting Ban-এর পরিধি চূড়ান্ত করা হয়েছে।
-
-### সিদ্ধান্ত ১০: ১৫ মিনিট Lock শেষ হলে Failed Login Counter শূন্য (Reset) হবে
-- **মূল নির্দেশনা:** ১৫ মিনিটের Account Lockout সময়কাল শেষ হলে সংশ্লিষ্ট `failed_login_attempts` কাউন্টার `0` হয়ে যাবে।
-- **কারিগরি কারণ:** ১৫ মিনিটের শাস্তিমূলক লক পূর্ণ হওয়ার পর বৈধ ব্যবহারকারী পুনরায় লগইন করতে গেলে যেন সামান্য একটি টাইপোতেই তাৎক্ষণিকভাবে আবার লক না হয়ে নতুন ৫-প্রচেষ্টার সুযোগ পান।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SECURITY_DOCUMENTATION.md` এবং `OPEN_QUESTIONS.md`-এ কাউন্টার রিসেট আচরণ স্পষ্ট করা হয়েছে।
-
-### সিদ্ধান্ত ১১: SSRF, IDOR, Open Redirect এবং Security Log Secret Redaction সংযোজন
-- **মূল নির্দেশনা:** নিরাপত্তা ডকুমেন্টেশন ও প্রয়োজনীয়তায় SSRF, IDOR, Open Redirect প্রতিরোধ এবং Security Log-এ Secret Redaction বাধ্যতামূলকভাবে যুক্ত করতে হবে।
-- **কারিগরি কারণ:** বাহ্যিক লিংক ও Image URL (Publisher পোস্ট), রিসোর্স ID (Edit/Profile/Moderation), Login/Reset পরবর্তী Redirect এবং লগিং পাইপলাইনে সাধারণ ও গুরুতর ওয়েব দুর্বলতা প্রতিরোধের জন্য এই চারটি নিয়ন্ত্রণ অপরিহার্য।
-- **ডকুমেন্ট পরিবর্তন:** `SECURITY_DOCUMENTATION.md`-এ চারটি বিষয়ের জন্য সুনির্দিষ্ট কন্ট্রোল ও `PROJECT_REQUIREMENTS.md`-এ সংশ্লিষ্ট নিরাপত্তা মানদণ্ড যুক্ত করা হয়েছে।
-
-### সিদ্ধান্ত ১২: Security Logs-এর প্রাথমিক Retention ৩০ দিন
-- **মূল নির্দেশনা:** `security_logs` টেবিলে লগ সংরক্ষণের প্রাথমিক মেয়াদ হবে ৩০ দিন।
-- **কারিগরি কারণ:** D1 Free টিয়ারের ৫ GB স্টোরেজ ও Row Write সীমার মধ্যে থেকে অপ্রয়োজনীয় পুরোনো লগ জমতে না দেওয়া এবং সাম্প্রতিক নিরাপত্তা বিশ্লেষণের জন্য পর্যাপ্ত ডেটা রাখা।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SECURITY_DOCUMENTATION.md`, `SYSTEM_ARCHITECTURE.md` এবং `OPEN_QUESTIONS.md`-এ ৩০ দিনের Retention নীতি যুক্ত করা হয়েছে।
-
-### সিদ্ধান্ত ১৩: SPA-তে History API Clean URLs ব্যবহার
-- **মূল নির্দেশনা:** SPA Architecture-এ Hash (`/#/`) এর পরিবর্তে History API Clean URLs ব্যবহার করতে হবে।
-- **কারিগরি কারণ:** আধুনিক ব্রাউজার নেভিগেশন, পরিচ্ছন্ন URL কাঠামো এবং Workers Static Assets-এর SPA ফলব্যাকের সাথে সামঞ্জস্যপূর্ণ ব্যবহারকারীর অভিজ্ঞতা নিশ্চিত করা।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SYSTEM_ARCHITECTURE.md` এবং `OPEN_QUESTIONS.md`-এ History API Clean URLs চূড়ান্ত করা হয়েছে।
-
-### সিদ্ধান্ত ১৪: প্রথম সংস্করণে (v1) Hero Video থাকবে না ও Image/Icon-এ নিরাপদ HTTPS URL
-- **মূল নির্দেশনা:** প্রথম সংস্করণে (v1) Hero Video থাকবে না; এর পরিবর্তে হালকা Cinematic Animated/Particle ব্যাকগ্রাউন্ড থাকবে। Image/Icon-এর জন্য নিরাপদ `https://` URL ব্যবহার করা হবে।
-- **কারিগরি কারণ:** Zero-Cost ও দ্রুত লোডিং বজায় রাখা, বড় ভিডিও ব্যান্ডউইথ/হোস্টিং জটিলতা এড়ানো এবং R2 বা পেইড মিডিয়া স্টোরেজ ছাড়াই v1 দ্রুত ও নিরাপদভাবে লঞ্চ করা।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SECURITY_DOCUMENTATION.md`, `SYSTEM_ARCHITECTURE.md` এবং `OPEN_QUESTIONS.md` হালনাগাদ করা হয়েছে।
-
-### সিদ্ধান্ত ১৫: Password Reset Email Provider নির্বাচনের আগে Free-tier ও Verification শর্ত যাচাই
-- **মূল নির্দেশনা:** Password Reset-এর জন্য Email Provider চূড়ান্ত করার আগে তার বর্তমান Free-tier সীমা ও Domain/Sender Verification শর্ত যাচাই করতে হবে।
-- **কারিগরি কারণ:** অনেক ট্রানজ্যাকশনাল ইমেইল সার্ভিস ফ্রি টিয়ারেও কাস্টম ডোমেইন DNS ভেরিফিকেশন বা সেন্ডার যাচাই চায়; যাচাই ছাড়া কোনো Provider অনুমান করে আর্কিটেকচার লক করা ঝুঁকিপূর্ণ।
-- **ডকুমেন্ট পরিবর্তন:** `PROJECT_REQUIREMENTS.md`, `SYSTEM_ARCHITECTURE.md` ও `OPEN_QUESTIONS.md`-এ যাচাইয়ের শর্তসমূহ স্পষ্টভাবে নথিভুক্ত করা হয়েছে।
-
----
-
-## ৩. পূর্ববর্তী Confirmed Decisions-এর সাথে সামঞ্জস্য যাচাই
-উপরোক্ত ১৫টি রিভিউ সিদ্ধান্তের কোনোটিই পূর্ববর্তী Confirmed Decisions (Guest Access, Verified Publisher ১০টি নিয়ম, Review সিস্টেম নিয়ম, Turnstile + ৫-ভুলে ১৫ মিনিট Lockout, Three-Level Ban System, ৯টি Admin মডিউল, ১০০% Free-tier নীতি, Mobile/Desktop Responsive UI ও Hybrid Sci-Fi Cinematic ডিজাইন দর্শন)-এর সাথে সাংঘর্ষিক নয়; বরং সেগুলোকে আরও নিরাপদ ও বাস্তবায়নযোগ্য করেছে।
-
----
-
-## ৪. Implementation-পূর্ব বাধ্যতামূলক যাচাই (Pre-Implementation Gates)
-কোডিং পর্যায়ে যাওয়ার আগে নিচের দুটি বিষয় যাচাই সম্পন্ন করতে হবে:
-1. Cloudflare Workers Free টিয়ারে Web Crypto `PBKDF2` Iteration সংখ্যার বাস্তব **CPU Benchmark** (১০ মিলিসেকেন্ড সীমার মধ্যে নিরাপদ সীমা নির্ধারণ)।
-2. Password Reset ইমেইলের জন্য নির্বাচিতব্য Provider-এর **Free-tier ও Domain/Sender Verification** শর্তাবলি যাচাই।
-২. সংশোধিত PROJECT_REQUIREMENTS.md
+Project Engineer-এর সর্বশেষ Technical Review অনুযায়ী সবগুলো Security Correction এবং Database Engineering Policy সমন্বয় করে নিচের পাঁচটি সম্পূর্ণ ডকুমেন্ট GitHub Repository-তে সরাসরি আপডেট করার উপযোগী করে তৈরি করা হলো।
+এই পর্যায়ে কোনো Source Code লেখা হয়নি, কোনো Deployment করা হয়নি, কোনো Paid Service যুক্ত করা হয়নি এবং পূর্ববর্তী সব Confirmed Decisions অপরিবর্তিত রাখা হয়েছে।
+১. PROJECT_REQUIREMENTS.md
 Markdown
 # ReviewHub — Project Requirements Document (PRD)
 
 > **ডকুমেন্টের ধরন:** Project Requirements Document (PRD)  
 > **প্রজেক্টের নাম:** ReviewHub  
-> **বর্তমান পর্যায়:** Technical Review অনুযায়ী সংশোধিত PRD (কোনো Source Code এখনো লেখা হয়নি)
+> **অবস্থা:** Documentation Final Review-এর জন্য প্রস্তুত (কোনো Source Code এখনো লেখা হয়নি)
 
 ---
 
 ## ১. প্রজেক্ট ওভারভিউ (Project Overview)
-**ReviewHub** হলো একটি আধুনিক ওয়েব প্ল্যাটফর্ম, যেখানে ব্যবহারকারীরা বিভিন্ন **App (বিশেষত Android অ্যাপ)** এবং **Website** সম্পর্কে বিস্তারিত তথ্য, স্টার রেটিং এবং ব্যবহারকারীদের অভিজ্ঞতাভিত্তিক রিভিউ দেখতে পারবেন।
+**ReviewHub** একটি আধুনিক ওয়েব প্ল্যাটফর্ম, যেখানে ব্যবহারকারীরা বিভিন্ন **App (বিশেষত Android অ্যাপ)** এবং **Website** সম্পর্কে তথ্য, ১–৫ স্টার রেটিং এবং ব্যবহারকারীদের অভিজ্ঞতাভিত্তিক রিভিউ দেখতে পারবেন।
 
-প্ল্যাটফর্মটি **১০০% Free-tier** অবকাঠামোর ওপর ভিত্তি করে পরিচালিত হওয়ার জন্য পরিকল্পিত এবং এখানে উন্মুক্ত ব্রাউজিং (Guest Access) ও কঠোর মান-নিয়ন্ত্রণ (Verified Publisher ও Admin Moderation + Three-Level Ban System) একসাথে সমন্বয় করা হবে।
+প্ল্যাটফর্মটি **১০০% Free-tier** অবকাঠামোর ওপর ভিত্তি করে পরিচালিত হওয়ার জন্য পরিকল্পিত। এখানে Guest ব্যবহারকারীদের জন্য উন্মুক্ত ব্রাউজিংয়ের পাশাপাশি কন্টেন্ট ও নিরাপত্তার জন্য **Verified Publisher System**, **Revision-ভিত্তিক Admin Moderation**, **Account Lockout ও Abuse Prevention**, **Admin TOTP 2FA (Encrypted + Recovery Codes)** এবং **Three-Level Ban System** থাকবে।
 
 ### মূল উদ্দেশ্য
-1. সাধারণ ভিজিটরদের জন্য লগইন ছাড়াই অ্যাপ ও ওয়েবসাইটের তথ্য, রেটিং ও রিভিউ দেখার উন্মুক্ত সুযোগ রাখা।
-2. ভুয়া অ্যাপ/ওয়েবসাইট ও স্প্যাম রিভিউ প্রতিরোধে **Admin-অনুমোদিত Publisher System** এবং **Pending-to-Approved Revision/Moderation** ব্যবস্থা চালু করা।
-3. Brute-force, Bot আক্রমণ এবং অপব্যবহার রোধে **Turnstile CAPTCHA**, **Account Lockout**, **Admin TOTP 2FA** এবং **Three-Level Ban System** বাস্তবায়ন করা।
-4. অপ্রয়োজনীয় কোনো পেইড সার্ভিস ছাড়াই নিরাপদ, দ্রুতগতির ও Mobile/Desktop Responsive অভিজ্ঞতা দেওয়া।
+1. লগইন ছাড়াই সাধারণ ভিজিটরদের জন্য অ্যাপ ও ওয়েবসাইটের তথ্য, রেটিং ও রিভিউ দেখার উন্মুক্ত সুযোগ রাখা।
+2. স্প্যাম ও ক্ষতিকর কন্টেন্ট ঠেকাতে **Verified Publisher System** ও **Revision-ভিত্তিক Admin Approval** চালু করা।
+3. Brute-force, Lockout Abuse, Bot আক্রমণ, SSRF, IDOR, Open Redirect এবং অপব্যবহার প্রতিরোধে কঠোর Backend-নিয়ন্ত্রিত নিরাপত্তা নিশ্চিত করা।
+4. একক Shared **Cloudflare D1 (সর্বোচ্চ 500MB per-database সীমা)** ও Free-tier নীতিমালার মধ্যে থেকে নির্ভরযোগ্য, দ্রুতগতির এবং Mobile/Desktop Responsive অভিজ্ঞতা প্রদান করা।
 
 ---
 
@@ -135,398 +28,397 @@ Markdown
 
 | রোল / অবস্থা | বিবরণ | অনুমোদিত কার্যক্রম |
 | :--- | :--- | :--- |
-| **Guest User** | লগইন ছাড়া ভিজিটর | Public Post (Approved App/Website), গড় রেটিং, Approved রিভিউ দেখা; Search ও Category ব্যবহার করা। |
-| **Authenticated User** | রেজিস্টার্ড ও লগইন করা সাধারণ ইউজার | Guest-এর সব সুবিধা + নিজের প্রোফাইল দেখা, রিভিউ/রেটিং সাবমিট ও নিজের রিভিউ সম্পাদনা (Posting Ban না থাকলে)। সরাসরি App/Website পোস্ট তৈরি করতে পারবে না। |
-| **Verified Publisher** | Admin কর্তৃক Publisher Permission প্রাপ্ত ইউজার | Authenticated User-এর সব সুবিধা + নতুন App/Website পোস্ট তৈরি (Pending হিসেবে) ও নিজের তৈরি পোস্ট সম্পাদনা (Approved পোস্ট Edit-এ নতুন Pending Revision তৈরি)। |
-| **Admin** | One-time Bootstrap বা অনুমোদিত প্রশাসক (বাধ্যতামূলক TOTP 2FA-সহ) | সম্পূর্ণ সিস্টেম নিয়ন্ত্রণ: User Management, Publisher Permission দেওয়া/বাতিল, Post ও Revision Approval, Review Moderation, ৩-স্তরের Ban/Unban, IP Management, Security Logs ও Admin Audit Logs পর্যবেক্ষণ। |
+| **Guest User** | লগইন ছাড়া ভিজিটর | Public Post (Approved App/Website), গড় রেটিং, Approved রিভিউ দেখা; Search, Category ও Pagination ব্যবহার করা। |
+| **Authenticated User** | রেজিস্টার্ড ও লগইন করা সাধারণ ইউজার | Guest-এর সব সুবিধা + নিজের প্রোফাইল দেখা, প্রতিটি Public আইটেমে **সর্বোচ্চ একটি** রিভিউ ও রেটিং জমা দেওয়া এবং নিজের রিভিউ সম্পাদনা (Posting Ban না থাকলে)। সরাসরি App/Website পোস্ট তৈরি করতে পারবে না। |
+| **Verified Publisher** | Admin কর্তৃক Publisher Permission প্রাপ্ত ইউজার | Authenticated User-এর সব সুবিধা + নির্ধারিত Backend User Quota-র মধ্যে নতুন App/Website পোস্ট তৈরি (`Pending` হিসেবে) এবং নিজের তৈরি পোস্ট সম্পাদনা (Approved পোস্ট Edit-এ নতুন `Pending` Revision তৈরি)। |
+| **Admin** | Atomic One-time Bootstrap বা অনুমোদিত প্রশাসক (বাধ্যতামূলক TOTP 2FA + Recovery Code-সহ) | সম্পূর্ণ সিস্টেম নিয়ন্ত্রণ: User Management, Publisher Permission দেওয়া/বাতিল, Post ও Revision Approval, Review ও Review Revision Moderation, ৩-স্তরের Ban/Unban, IP Management, Storage Monitoring (70%/85%/95%), Security Logs ও Admin Audit Logs। |
 
 ---
 
 ## ৩. Functional Requirements (কার্যকরী চাহিদা)
 
 ### ৩.১ Guest Access (অতিথি ব্যবহারকারীর অধিকার)
-- **FR-1.1 (No Forced Login Wall):** ওয়েবসাইটে প্রবেশ করার সাথে সাথে ব্যবহারকারীকে Login বা Register করতে বাধ্য করা যাবে না।
-- **FR-1.2 (Public Content Browsing):** Guest User সকল Public (Admin-approved) App ও Website পোস্ট, সেগুলোর গড় রেটিং এবং প্রকাশিত (Approved) রিভিউ দেখতে পারবে।
-- **FR-1.3 (Search & Category):** Guest User কোনো অ্যাকাউন্ট ছাড়াই Search বার এবং Category ফিল্টার ব্যবহার করে অ্যাপ ও ওয়েবসাইট খুঁজতে পারবে।
-- **FR-1.4 (Action Prompt):** Guest User কোনো কিছু পোস্ট করতে চাইলে (যেমন রিভিউ দেওয়া বা অনুমোদিত হলে App/Website পোস্ট সাবমিট করা) তাকে Login অথবা Register করার নির্দেশনা দেখানো হবে।
+- **FR-1.1 (No Forced Login Wall):** ওয়েবসাইটে প্রবেশ করেই Login বা Register করা বাধ্যতামূলক করা যাবে না।
+- **FR-1.2 (Public Content Browsing):** Guest User সকল Public (Approved) App ও Website পোস্ট, গড় রেটিং এবং প্রকাশিত (Approved) রিভিউ দেখতে পারবে।
+- **FR-1.3 (Search, Category & Pagination):** Guest User Search, Category ফিল্টার এবং Paginated তালিকা ব্যবহার করে অ্যাপ ও ওয়েবসাইট খুঁজতে পারবে।
+- **FR-1.4 (Action Prompt):** Guest User কোনো কিছু পোস্ট করতে চাইলে (রিভিউ দেওয়া বা অনুমোদিত হলে App/Website পোস্ট তৈরি) তাকে Login অথবা Register করার নির্দেশনা দেখানো হবে।
 
-### ৩.২ Authentication, Account Lockout ও Admin 2FA Flow
-- **FR-2.1 (Registration & Login with CAPTCHA):** Registration এবং Login উভয় ফর্মে **Cloudflare Turnstile** CAPTCHA সুরক্ষা থাকবে। Backend-এ Turnstile টোকেন যাচাই না হওয়া পর্যন্ত কোনো Login বা Registration সম্পন্ন হবে না।
-- **FR-2.2 (Failed Login Lockout):** পরপর **৫ বার** ভুল Password দিলে সংশ্লিষ্ট Account **১৫ মিনিটের জন্য Lock** হয়ে যাবে।
-- **FR-2.3 (Strict Lock Enforcement):** Account Lock থাকা অবস্থায় ব্যবহারকারী **সঠিক Password দিলেও** Login করতে পারবে না, যতক্ষণ না ১৫ মিনিট পূর্ণ হয়।
-- **FR-2.4 (Uniform Error Message):** Lock চলাকালীন প্রতিটি Login প্রচেষ্টায় ব্যবহারকারীকে **একই সাধারণ ব্যর্থতার বার্তা** দেখাতে হবে, যাতে অ্যাকাউন্টের অবস্থা বা অস্তিত্ব ফাঁস না হয়।
-- **FR-2.5 (Counter Reset after Lock Expiry):** ১৫ মিনিটের Lock সময়কাল শেষ হওয়ার পর সংশ্লিষ্ট `failed_login_attempts` কাউন্টার শূন্য (`0`) হয়ে যাবে।
-- **FR-2.6 (Backend Lockout Control):** Lockout গণনা, সময়সীমা, কাউন্টার রিসেট ও যাচাইকরণ সম্পূর্ণভাবে Backend (Cloudflare D1) নিয়ন্ত্রণ করবে; Frontend বা approximate rate limiter-এর ওপর নির্ভর করা যাবে না।
-- **FR-2.7 (Admin One-time Secure Bootstrap & Mandatory TOTP 2FA):** প্রথম Admin অ্যাকাউন্ট কেবল **One-time Secure Bootstrap** প্রক্রিয়ায় তৈরি হবে এবং এরপর Bootstrap প্রক্রিয়া স্থায়ীভাবে নিষ্ক্রিয় হবে। Admin অ্যাকাউন্টে লগইনের জন্য পাসওয়ার্ডের পাশাপাশি **TOTP-ভিত্তিক 2FA** বাধ্যতামূলক থাকবে।
-- **FR-2.8 (Secure Password Reset):** ব্যবহারকারীর জন্য নিরাপদ Password Reset প্রক্রিয়া থাকবে (সময়সীমাবদ্ধ ও একবার ব্যবহারযোগ্য হ্যাশকৃত টোকেন এবং Turnstile CAPTCHA-সহ)। *(Email Provider চূড়ান্ত করার আগে Free-tier ও Verification শর্ত যাচাই সাপেক্ষে।)*
+### ৩.২ Authentication, Lockout Abuse Prevention ও Admin 2FA
+- **FR-2.1 (Registration & Login with CAPTCHA):** Registration, Login এবং Password Reset ফর্মে **Cloudflare Turnstile** CAPTCHA থাকবে এবং তা Backend-এ যাচাই করা বাধ্যতামূলক।
+- **FR-2.2 (Failed Login Lockout):** পরপর **৫ বার** ভুল Password দিলে সংশ্লিষ্ট Account **১৫ মিনিটের জন্য Lock** হবে।
+- **FR-2.3 (Strict Lock Enforcement & Uniform Error):** Account Lock থাকা অবস্থায় **সঠিক Password দিলেও** Login হবে না। Lock চলাকালীন প্রতিটি Login প্রচেষ্টায় একই সাধারণ ব্যর্থতার বার্তা দেখাতে হবে।
+- **FR-2.4 (Counter Reset after Lock Expiry):** ১৫ মিনিটের Lock সময়কাল শেষ হওয়ার পর `failed_login_attempts` কাউন্টার শূন্য (`0`) হয়ে যাবে।
+- **FR-2.5 (Backend Lockout Control & Abuse Prevention):** Lockout সম্পূর্ণভাবে Backend (D1) নিয়ন্ত্রণ করবে। পাশাপাশি আক্রমণকারী যেন ইচ্ছাকৃতভাবে অন্যের ইমেইলে বারবার ভুল পাসওয়ার্ড দিয়ে Targeted Lockout DoS ঘটাতে না পারে, সেজন্য **Account Lockout Abuse Prevention** (Turnstile + Pre-auth Rate Limit + IP-ভিত্তিক সন্দেহজনক লকআউট শনাক্তকরণ) থাকবে।
+- **FR-2.6 (Password Hashing — Security First):** পাসওয়ার্ড হ্যাশিংয়ে কোনো নিরাপত্তা দুর্বলতা মেনে নেওয়া হবে না; PBKDF2 Workers Free 10ms CPU সীমার বাস্তব Benchmark-এ উত্তীর্ণ না হলে নিরাপদ বিকল্প পরিকল্পনা অনুসরণ করা হবে (বিস্তারিত `SECURITY_DOCUMENTATION.md`-এ)।
+- **FR-2.7 (Atomic One-time Admin Bootstrap):** প্রথম Admin অ্যাকাউন্ট কেবল **Atomic One-time Secure Bootstrap** প্রক্রিয়ায় তৈরি হবে এবং একবার সম্পন্ন হলে Bootstrap স্থায়ীভাবে অকার্যকর হয়ে পুনরায় ব্যবহারের অযোগ্য হবে।
+- **FR-2.8 (Mandatory Admin TOTP 2FA & Recovery Codes):** Admin লগইনে পাসওয়ার্ডের পাশাপাশি **TOTP 2FA** বাধ্যতামূলক থাকবে। Admin TOTP Secret এনক্রিপ্টেড অবস্থায় সংরক্ষিত থাকবে এবং জরুরি পুনরুদ্ধারের জন্য এককালীন ব্যবহারযোগ্য **Encrypted/Hashed Recovery Codes** ব্যবস্থা থাকবে।
+- **FR-2.9 (Secure Password Reset):** সময়সীমাবদ্ধ এককালীন হ্যাশকৃত টোকেন ও CAPTCHA-সহ নিরাপদ Password Reset থাকবে *(Email Provider নির্বাচন Free-tier ও Verification শর্ত যাচাই সাপেক্ষে)*।
 
-### ৩.৩ Review & Rating System
-- **FR-3.1 (Star Rating):** লগইন করা ব্যবহারকারী (Posting Ban না থাকলে) প্রতিটি Public App/Website-এ ১ থেকে ৫ স্টার রেটিং ও রিভিউ জমা দিতে পারবে।
-- **FR-3.2 (Moderation Workflow):** নতুন রিভিউ `Pending` অবস্থায় থাকবে; Admin Approve করলে প্রকাশিত হবে এবং কেবল Approved রিভিউ থেকেই গড় রেটিং হিসাব হবে।
-- **FR-3.3 (Edit Rule):** ব্যবহারকারী (Posting Ban না থাকলে) নিজের রিভিউ সম্পাদনা করতে পারবে; সম্পাদনার পর রিভিউটি পুনরায় `Pending` অবস্থায় ফিরে যাবে।
+### ৩.৩ Review & Rating System (One-Review-Per-Item ও Revision নীতি)
+- **FR-3.1 (One Review per User per Item):** একজন User একটি নির্দিষ্ট App বা Website-এ **একটির বেশি Review দিতে পারবে না**। Database স্তরে `UNIQUE(item_id, user_id)` Constraint দ্বারা এটি নিশ্চিত করা হবে; পরিবর্তনের জন্য ইউজারকে Edit সুবিধা ব্যবহার করতে হবে।
+- **FR-3.2 (Star Rating & Moderation):** রেটিং ১ থেকে ৫ পূর্ণসংখ্যা হতে হবে। নতুন রিভিউ `Pending` থাকবে; Admin Approve করলে প্রকাশিত হবে এবং কেবল Approved রিভিউ থেকেই গড় রেটিং হিসাব হবে।
+- **FR-3.3 (Approved Review Edit -> Pending Revision):** ব্যবহারকারী নিজের রিভিউ Edit করতে পারবে। যদি রিভিউটি ইতিমধ্যেই `Approved` হয়ে থাকে, তবে Edit করলে একটি **নতুন `Pending` Review Revision** তৈরি হবে এবং **পুরোনো `Approved` Reviewটি নতুন Revision Approve না হওয়া পর্যন্ত Public থাকবে** (এবং গড় রেটিংয়ে গণ্য হতে থাকবে)। নতুন Revision Approve হলে Public রিভিউ ও গড় রেটিং আপডেট হবে; Rejected হলে পুরোনো Approved রিভিউ অক্ষত থাকবে। আর কখনো Approve না হওয়া `Pending` রিভিউ Edit করলে সেটি `Pending` অবস্থাতেই আপডেট হবে।
 
 ### ৩.৪ Verified Publisher System ও Revision Workflow
-- **FR-4.1 (No Auto-Publisher):** কেবল Registration করলেই কোনো User Publisher হিসেবে গণ্য হবে না।
-- **FR-4.2 (Admin-Granted Access):** Admin Dashboard থেকে Admin নির্দিষ্ট User-কে Publisher Permission দিলে কেবল তখনই সে Publisher Access পাবে।
-- **FR-4.3 (Post Creation):** কেবল অনুমোদিত Publisher (ও Admin, Posting Ban না থাকলে) নতুন Android App এবং Website পোস্ট তৈরি করতে পারবে। পোস্টে Title, Description, Category, Website/App Link, নিরাপদ `https://` Image/Icon URL এবং প্রয়োজনীয় Text যুক্ত করা যাবে।
-- **FR-4.4 (Ownership-Restricted Edit):** Publisher কেবল নিজের তৈরি করা পোস্ট Edit করতে পারবে; অন্য কারো পোস্ট Edit বা Delete করতে পারবে না।
-- **FR-4.5 (Pending Default & Approval):** Publisher-এর তৈরি প্রতিটি নতুন পোস্টের প্রাথমিক অবস্থা হবে `Pending`। Admin Approve না করা পর্যন্ত পোস্টটি Public হবে না।
-- **FR-4.6 (Approved Post Edit -> Pending Revision):** Publisher যদি তার ইতিমধ্যেই `Approved` হওয়া কোনো পোস্ট Edit করে, তবে সরাসরি লাইভ কনটেন্ট পরিবর্তন না হয়ে একটি **নতুন `Pending` Revision** তৈরি হবে। Admin নতুন Revision-টি Approve না করা পর্যন্ত **পুরোনো `Approved` সংস্করণটিই Public হিসেবে প্রদর্শিত হতে থাকবে**। নতুন Revision Approved হলে সেটি Public সংস্করণ হিসেবে প্রতিস্থাপিত হবে; Rejected হলে পুরোনো Public সংস্করণ অক্ষত থাকবে।
-- **FR-4.7 (Instant Revocation):** Admin যেকোনো সময় যেকোনো User-এর Publisher Permission বাতিল করতে পারবে এবং তা সাথে সাথে কার্যকর হবে।
-- **FR-4.8 (User Profile Integration):** User Profile-এ ইউজারের Verified Publisher স্ট্যাটাস (যদি থাকে), নিজের জমা দেওয়া পোস্ট ও পেন্ডিং রিভিশনের তালিকা এবং My Reviews প্রদর্শিত হবে।
+- **FR-4.1 (No Auto-Publisher):** Registration করলেই Publisher হওয়া যাবে না।
+- **FR-4.2 (Admin-Granted Access):** কেবল Admin Dashboard থেকে Admin নির্দিষ্ট User-কে Publisher Permission দিলে সে Publisher Access পাবে।
+- **FR-4.3 (Post Creation & Content Limits):** কেবল অনুমোদিত Publisher (ও Admin, Posting Ban না থাকলে) নির্ধারিত **Backend User Quota** ও **Content Length সীমার** মধ্যে নতুন Android App এবং Website পোস্ট তৈরি করতে পারবে। পোস্টে Title, Description, Category, Website/App Link (`https://`), Image/Icon (`https://` নিরাপদ URL — Database-এ বড় Image বা Video রাখা যাবে না) এবং প্রয়োজনীয় Text যুক্ত করা যাবে।
+- **FR-4.4 (Ownership-Restricted Edit):** Publisher কেবল নিজের তৈরি পোস্ট Edit করতে পারবে।
+- **FR-4.5 (Pending Default & Approval):** নতুন তৈরি প্রতিটি পোস্ট প্রথমে `Pending` থাকবে; Admin Approve না করা পর্যন্ত Public হবে না।
+- **FR-4.6 (Approved Post Edit -> Pending Revision):** Publisher কোনো `Approved` পোস্ট Edit করলে একটি **নতুন `Pending` Revision** তৈরি হবে। Admin নতুন Revision Approve না করা পর্যন্ত **পুরোনো `Approved` সংস্করণটি Public থাকবে**।
+- **FR-4.7 (Instant Revocation):** Admin যেকোনো সময় Publisher Permission বাতিল করতে পারবে এবং তা Backend থেকে তাৎক্ষণিকভাবে কার্যকর হবে।
+- **FR-4.8 (User Profile Integration):** User Profile-এ Verified Publisher স্ট্যাটাস (থাকলে), নিজের পোস্ট ও পেন্ডিং রিভিশনের তালিকা, Quota ব্যবহার এবং My Reviews (পেন্ডিং রিভিশনসহ) দেখা যাবে।
 
 ### ৩.৫ Three-Level Ban System (তিন স্তরের নিষেধাজ্ঞা ব্যবস্থা)
+- **স্তর ১ — Login Ban:** Permanent অথবা মিনিট, ঘণ্টা, দিন, মাস ও বছর অনুযায়ী Temporary; Ban চলাকালীন Login নিষিদ্ধ ও সক্রিয় সেশন বাতিল; Admin Unban করতে পারবে।
+- **স্তর ২ — Posting Ban:** User Login করতে পারবে এবং Public Content দেখতে পারবে; কিন্তু **নতুন Post, Review, Rating এবং বিদ্যমান Content (Post/Review) Edit সম্পূর্ণ বন্ধ থাকবে**; Permanent অথবা Temporary করা যাবে এবং Admin Unban করতে পারবে।
+- **স্তর ৩ — IP Security Ban:** Edge WAF, Workers Rate Limiting API (Approximate Burst Guard) ও Anomaly Detection দ্বারা সন্দেহজনক Request শনাক্তকরণ ও সাময়িক Auto-Block; স্থায়ী/নির্ভরযোগ্য IP Ban Record D1-এ সংরক্ষণ; Admin Manual Block ও দ্রুত Unblock; Shared IP-তে বৈধ ব্যবহারকারীদের অকারণে Block না করার সুরক্ষা।
 
-#### স্তর ১: Login Ban
-- **FR-5.1 (Duration Flexibility):** Admin কোনো User-কে **Permanent** অথবা **Temporary** Login Ban দিতে পারবে। Temporary Ban-এর ক্ষেত্রে **মিনিট, ঘণ্টা, দিন, মাস এবং বছর** অনুযায়ী মেয়াদ নির্ধারণ করা যাবে।
-- **FR-5.2 (Enforcement):** Login Ban চলাকালীন User নতুন করে Login করতে পারবে না এবং তার চলমান সেশনগুলোও তাৎক্ষণিকভাবে অকার্যকর হয়ে যাবে।
-- **FR-5.3 (Unban):** Admin যেকোনো সময় Login Ban তুলে নিতে (Unban করতে) পারবে। মেয়াদ শেষ হলে Temporary Ban স্বয়ংক্রিয়ভাবে শেষ হবে।
-
-#### স্তর ২: Posting Ban
-- **FR-5.4 (Read-Only Access Preserved):** Posting Ban থাকা অবস্থায় User স্বাভাবিকভাবে **Login করতে পারবে** এবং সব **Public Content, Rating ও Review দেখতে পারবে**।
-- **FR-5.5 (Comprehensive Write/Edit Restriction):** Posting Ban চলাকালীন User কোনো **নতুন App/Website Post**, **নতুন Review**, **নতুন Rating** সাবমিট করতে পারবে না এবং **বিদ্যমান কোনো Content (পোস্ট বা রিভিউ) Edit-ও করতে পারবে না**।
-- **FR-5.6 (Duration & Unban):** Posting Ban **Permanent** অথবা **Temporary** করা যাবে এবং Admin তা যেকোনো সময় Unban করতে পারবে।
-
-#### স্তর ৩: IP Security Ban
-- **FR-5.7 (Anomaly Detection & Mitigation):** সিস্টেম সন্দেহজনক Request, ব্রুট-ফোর্স বা অতিমাত্রায় API কল শনাক্ত করতে **Cloudflare Edge WAF**, **Workers Rate Limiting API** (Approximate Burst Mitigation) এবং **Application-level Anomaly Checks** ব্যবহার করবে।
-- **FR-5.8 (Temporary Auto-Block & Authoritative D1 Records):** আক্রমণের লক্ষণ পাওয়া গেলে সাময়িক IP Block করা যাবে। স্থায়ী ও নির্ভরযোগ্য Ban Record-গুলো **Cloudflare D1**-এ সংরক্ষিত থাকবে।
-- **FR-5.9 (Admin Manual Control & Fast Unblock):** Admin যেকোনো IP-কে Manually Block ও Unblock করতে পারবে। ভুলবশত কোনো IP Block হলে দ্রুত Unblock করার জন্য ডেডিকেটেড UI ও সার্চ সুবিধা থাকবে।
-- **FR-5.10 (Shared IP Protection):** মোবাইল নেটওয়ার্ক (CGNAT), অফিস বা শিক্ষাপ্রতিষ্ঠানের Shared IP ব্যবহারের কারণে বৈধ ব্যবহারকারীরা যেন অকারণে Permanent বা দীর্ঘমেয়াদি Block-এর শিকার না হয়, সেজন্য ধাপে ধাপে প্রতিরোধ ব্যবস্থা (Graduated Defense) এবং স্বল্পমেয়াদি অটো-ব্লক নীতি অনুসরণ করতে হবে।
-
-### ৩.৬ Admin System
-Admin Dashboard-এ নিচের ৯টি মূল মডিউল থাকতে হবে (সকল ক্ষমতা Backend-এ TOTP-ভেরিফায়েড সেশন ও Admin রোল যাচাইকৃত):
-1. **User Management:** সকল ব্যবহারকারীর তালিকা, প্রোফাইল স্ট্যাটাস, সার্চ ও অ্যাকাউন্ট নিয়ন্ত্রণ।
-2. **Publisher Approval:** সাধারণ User-কে Publisher Permission দেওয়া ও যেকোনো সময় বাতিল করা।
-3. **Post Approval:** Publisher-দের তৈরি `Pending` নতুন App/Website পোস্ট, `Pending` Revision এবং ব্যবহারকারীদের `Pending` রিভিউ Approve বা Reject করা; Admin-এর নিজস্ব পোস্ট পরিচালনা।
-4. **Login Ban:** Permanent বা মিনিট/ঘণ্টা/দিন/মাস/বছর ভিত্তিক Temporary Login Ban প্রয়োগ।
-5. **Posting Ban:** Permanent বা Temporary Posting Ban প্রয়োগ।
-6. **IP Management:** সক্রিয় IP Block তালিকা দেখা, Manual IP Block যোগ করা, সাময়িক/সন্দেহজনক IP পর্যালোচনা।
-7. **Unban Management:** Login Ban, Posting Ban এবং IP Ban এক স্থান থেকে দ্রুত Unban করার সমন্বিত প্যানেল।
-8. **Security Logs:** ৩০ দিনের Retention-সহ ব্যর্থ Login, Account Lockout, Turnstile ব্যর্থতা, Rate Limit লঙ্ঘন, অটো-ব্লক হওয়া IP এবং অননুমোদিত অ্যাক্সেস প্রচেষ্টার Secret-Redacted লগ।
-9. **Admin Audit Logs:** Admin-এর প্রতিটি গুরুত্বপূর্ণ পদক্ষেপের **Application-level Append-only** অডিট রেকর্ড।
+### ৩.৬ Admin System (৯টি মূল মডিউল + Database Monitoring)
+1. **User Management:** ইউজার তালিকা (Paginated), প্রোফাইল স্ট্যাটাস, User Quota নিয়ন্ত্রণ।
+2. **Publisher Approval:** Publisher Permission প্রদান ও তাৎক্ষণিক বাতিল।
+3. **Post Approval:** নতুন `Pending` App/Website পোস্ট, `Pending` Post Revision, `Pending` Review এবং `Pending` Review Revision Approve বা Reject করা; Admin-এর নিজস্ব পোস্ট পরিচালনা।
+4. **Login Ban:** Permanent বা মিনিট/ঘণ্টা/দিন/মাস/বছর ভিত্তিক Temporary Login Ban।
+5. **Posting Ban:** Permanent বা Temporary Posting Ban।
+6. **IP Management:** Manual IP Block যোগ, সক্রিয় ও অটো-ব্লক IP তালিকা।
+7. **Unban Management:** Login Ban, Posting Ban এবং IP Ban দ্রুত Unban করার সমন্বিত ব্যবস্থা।
+8. **Security Logs:** ৩০ দিনের Retention, Secret Redaction ও মেয়াদোত্তীর্ণ লগ পরিষ্কারের অবস্থা।
+9. **Admin Audit Logs:** Application-level Append-only অডিট রেকর্ড।
+- **Storage Monitoring Panel:** Shared **500MB D1 Database**-এর ব্যবহার **70%, 85% এবং 95%** অতিক্রম করলে Admin Dashboard-এ স্পষ্ট সতর্কতা ও অবস্থা প্রদর্শন।
 
 ---
 
 ## ৪. Non-Functional Requirements (অ-কার্যকরী চাহিদা)
-- **NFR-1 (100% Free-Tier Constraint):** সম্পূর্ণ প্রজেক্ট ফ্রি-টিয়ার সেবার মধ্যে সীমাবদ্ধ থাকবে; কোনো অপ্রয়োজনীয় পেইড সার্ভিস ব্যবহার করা যাবে না।
-- **NFR-2 (Architectural Separation):** Frontend, Backend এবং Database সম্পূর্ণ আলাদা স্তরে থাকবে।
-- **NFR-3 (SPA with History API Clean URLs & Responsive Design):** SPA (Single-Page Application) আর্কিটেকচারে **History API Clean URLs** ব্যবহার করতে হবে এবং UI অবশ্যই Mobile ও Desktop উভয় ডিভাইসে সম্পূর্ণ Responsive হবে।
-- **NFR-4 (Visual Design Identity — v1 Media Constraint):** *Hybrid Sci-Fi Cinematic Interface* (Deep Navy/Black, Electric Cyan, Neon Purple, Neon Green, White/Soft Gray) বজায় থাকবে; তবে **প্রথম সংস্করণে (v1) Hero Video থাকবে না**—এর পরিবর্তে হালকা অ্যানিমেটেড/পার্টিকেল ব্যাকগ্রাউন্ড ব্যবহৃত হবে। পোস্টের Image/Icon-এর জন্য নিরাপদ `https://` URL ব্যবহার করা হবে।
-- **NFR-5 (Free-Tier Quota & CPU Safety):** Cloudflare Workers-এর ১০ মিলিসেকেন্ড CPU সীমা (বিশেষত PBKDF2 Benchmark সাপেক্ষে) এবং D1-এর দৈনিক Read/Write সীমা (প্রতিটি Request-এ D1 Counter Write না করা) মেনে অপ্টিমাইজড ডিজাইন হতে হবে।
-- **NFR-6 (Application Security Standards):** SSRF, IDOR, Open Redirect প্রতিরোধ এবং লগে Secret Redaction বাধ্যতামূলক।
-৩. সংশোধিত SECURITY_DOCUMENTATION.md
+- **NFR-1 (100% Free-Tier & 500MB Shared D1 Limit):** সম্পূর্ণ সিস্টেম Free-tier সীমার মধ্যে থাকবে। সব User একটি Shared **Cloudflare D1 Database (সর্বোচ্চ 500MB per-database সীমা)** ব্যবহার করবে।
+- **NFR-2 (Architectural Separation & SPA):** Frontend, Backend ও Database আলাদা থাকবে; **History API Clean URLs** সমৃদ্ধ SPA এবং Mobile/Desktop Responsive *Hybrid Sci-Fi Cinematic Interface* থাকবে।
+- **NFR-3 (v1 Media Constraint):** প্রথম সংস্করণে (v1) Hero Video থাকবে না এবং Database-এ কোনো বড় Image বা Video সংরক্ষণ করা হবে না; Image/Icon-এর জন্য নিরাপদ `https://` URL (CSP ও Referrer Privacy-সহ) ব্যবহৃত হবে।
+- **NFR-4 (Database Performance & Protection):** Index, Query Optimization ও Pagination বাধ্যতামূলক; প্রতিটি Request-এ D1 Counter Write করা যাবে না; Cleanup প্রক্রিয়ায় Password, Session ও গুরুত্বপূর্ণ Security Data অসতর্কভাবে মুছে ফেলা যাবে না।
+- **NFR-5 (Application Security Standards):** SSRF, IDOR, Open Redirect, XSS, CSRF, SQL Injection প্রতিরোধ এবং Security Log Secret Redaction বাধ্যতামূলক।
+২. SECURITY_DOCUMENTATION.md
 Markdown
 # ReviewHub — Security Architecture & Controls Documentation
 
 > **ডকুমেন্টের ধরন:** Security Documentation  
-> **নিরাপত্তা নীতি:** Zero-Trust Client Model (কোনো নিরাপত্তা সিদ্ধান্ত Frontend-এর ওপর ছেড়ে দেওয়া যাবে না; প্রতিটি যাচাইকরণ Backend ও Edge স্তরে বাধ্যতামূলক)।
+> **নিরাপত্তা নীতি:** Zero-Trust Client Model (প্রতিটি যাচাইকরণ Backend ও Edge স্তরে বাধ্যতামূলক; পারফরম্যান্স সীমার অজুহাতে নিরাপত্তা দুর্বল করা যাবে না)।
 
 ---
 
 ## ১. নিরাপত্তা দর্শন ও Threat Model
-ReviewHub-এ চার স্তরের ব্যবহারকারী এবং উন্মুক্ত ইন্টারনেট অ্যাক্সেস থাকায় নিচের প্রধান ঝুঁকিগুলো মোকাবিলা করার জন্য প্রতিরক্ষা স্তর নির্ধারণ করা হয়েছে:
-1. **Credential Stuffing ও Brute-Force আক্রমণ:** স্বয়ংক্রিয় বট দিয়ে Login/Registration/Password Reset-এ আক্রমণ।
-2. **Privilege Escalation ও IDOR:** সাধারণ ইউজার নিজেকে Publisher বা Admin দাবি করা, অথবা অন্য ইউজারের পোস্ট/রিভিশন/রিভিউ অ্যাক্সেস বা পরিবর্তন করার চেষ্টা।
-3. **Account Enumeration ও Open Redirect:** ভিন্ন Error বার্তা দেখে ইমেইল অস্তিত্ব শনাক্ত করা কিংবা লগইন-পরবর্তী রিডাইরেক্ট হাইজ্যাক করা।
-4. **SSRF, XSS, CSRF ও SQL Injection:** ক্ষতিকর URL ইনপুট, স্ক্রিপ্ট ইনজেকশন ও ডেটাবেজ ম্যানিপুলেশন।
-5. **Free-Tier Resource Exhaustion ও Shared IP Collateral Damage:** D1 Write কোটা নিঃশেষ করা বা Shared IP-তে বৈধ ব্যবহারকারীকে অকারণে ব্লক করা।
-6. **Admin Account Compromise ও Log Data Exposure:** দুর্বল Admin অথেনটিকেশন বা Security Log-এ পাসওয়ার্ড/টোকেন ফাঁস হওয়া।
+ReviewHub যে প্রধান হুমকিগুলো মোকাবিলা করবে:
+1. **Brute-Force, Credential Stuffing ও Account Lockout Abuse (Targeted Lockout DoS)।**
+2. **Weak Password Hashing বা CPU-সীমা এড়াতে ক্রিপ্টোগ্রাফিক নিরাপত্তা দুর্বল করার ঝুঁকি।**
+3. **Privilege Escalation, Atomic Bootstrap Race Condition ও Admin Account Takeover।**
+4. **IDOR, Duplicate Review Spam, ও Revision-বাইপাস করে ক্ষতিকর কন্টেন্ট প্রকাশ।**
+5. **Image/Link-ভিত্তিক XSS, Referrer Data Leak, SSRF ও Open Redirect।**
+6. **D1 500MB Storage / 100k Daily Write কোটা নিঃশেষ (Database Exhaustion) ও Shared IP Collateral Blocking।**
+7. **Security Logs-এ Secret ফাঁস হওয়া বা অসতর্ক ডেটা Cleanup-এ Security Data নষ্ট হওয়া।**
 
 ---
 
-## ২. Authentication, Lockout ও Admin 2FA সুরক্ষা
+## ২. Authentication, Hashing Benchmark ও Lockout Abuse Prevention
 
-### ২.১ Cloudflare Turnstile CAPTCHA সুরক্ষা
-- **প্রয়োগ ক্ষেত্র:** Login, Registration এবং Password Reset ফর্ম।
-- **কার্যপ্রণালী:** Frontend থেকে প্রাপ্ত Turnstile টোকেন Backend Worker-এ গোপন Turnstile Secret Key ব্যবহার করে `siteverify` এন্ডপয়েন্টে (অবশ্যই HTTPS ও অনুমোদিত নির্দিষ্ট ডোমেইন) যাচাই করা হবে। যাচাই ব্যর্থ হলে কোনো Auth অপারেশন সম্পন্ন হবে না।
+### ২.১ Cloudflare Turnstile CAPTCHA
+- Login, Registration এবং Password Reset ফর্মে বাধ্যতামূলক।
+- Frontend টোকেন Backend Worker-এ Turnstile Secret Key দিয়ে নির্দিষ্ট `siteverify` এন্ডপয়েন্টে যাচাই না হওয়া পর্যন্ত কোনো Auth রিকোয়েস্ট প্রক্রিয়াজাত হবে না।
 
-### ২.২ ৫-বার ব্যর্থতায় ১৫ মিনিট Account Lockout নীতি
-- **নিয়ম:** একই অ্যাকাউন্টে পরপর **৫ বার** ভুল Password দিলে অ্যাকাউন্টটি **১৫ মিনিটের জন্য Lock** হবে।
-- **Authoritative Backend Control:** `failed_login_attempts` এবং `locked_until` **Cloudflare D1**-এ সংরক্ষিত ও Backend দ্বারা নিয়ন্ত্রিত হবে (Approximate Rate Limiter দিয়ে নয়)।
-- **Lock চলাকালীন আচরণ:**
-  - `locked_until > current_time` হলে ব্যবহারকারী **সঠিক Password দিলেও** Login করতে পারবে না।
-  - প্রতিবার **একই সাধারণ ব্যর্থতার বার্তা** দেখানো হবে (Anti-Enumeration)।
-- **১৫ মিনিট Lock শেষ হওয়ার পর Counter Reset:** `locked_until <= current_time` হলে অর্থাৎ ১৫ মিনিট Lock সময়কাল অতিক্রান্ত হওয়ার পর পরবর্তী Login মূল্যায়নের সময় `failed_login_attempts` কাউন্টার শূন্য (`0`) করে নেওয়া হবে (এবং `locked_until` পরিষ্কার করা হবে)। সঠিক পাসওয়ার্ডে সফল লগইন হলেও কাউন্টার `0` হবে।
+### ২.২ Password Hashing ও Benchmark ব্যর্থ হলে নিরাপদ বিকল্প পরিকল্পনা
+- **নীতি:** পাসওয়ার্ড কখনো Plain Text বা দুর্বল হ্যাশে রাখা যাবে না। Cloudflare Workers Free প্ল্যানে প্রতি ইনভোকেশনে **১০ মিলিসেকেন্ড CPU সময়সীমা** রয়েছে এবং প্রোডাকশন Workers রানটাইমে Web Crypto `PBKDF2`-এর নিজস্ব সীমাবদ্ধতা থাকতে পারে।
+- **বাধ্যতামূলক বাস্তব Benchmark:** কেবল লোকাল `wrangler dev`-এর ওপর নির্ভর না করে deployed Cloudflare Workers Free এনভায়রনমেন্টে বাস্তব CPU Benchmark করতে হবে।
+- **নিরাপত্তা দুর্বল করা নিষিদ্ধ:** ১০ms CPU সীমার ভেতর জোর করে ঢোকাতে গিয়ে Iteration সংখ্যা কমিয়ে বা দুর্বল অ্যালগরিদম ব্যবহার করে Password Hashing দুর্বল করা যাবে না।
+- **Benchmark ব্যর্থ হলে নিরাপদ বিকল্প পরিকল্পনা (Safe Fallback Plan):**
+  যদি deployed Workers Free এনভায়রনমেন্টে নিরাপদ মানের `PBKDF2` Benchmark ব্যর্থ হয় (CPU Limit বা Runtime Iteration Cap অতিক্রম করে), তবে নিরাপত্তা না কমিয়ে নিচের অনুমোদিত বিকল্পগুলোর যেকোনো একটি (Project Engineer-এর চূড়ান্ত অনুমোদনে) গ্রহণ করা হবে:
+  1. **বিকল্প A — Free-Tier Managed Identity / External Auth Provider:** পাসওয়ার্ড হ্যাশিং ও ক্রিপ্টোগ্রাফিক Auth প্রসেসিং অনুমোদিত Free-tier Managed Auth সার্ভিসে স্থানান্তর করা, যেখানে Workers কেবল যাচাইকৃত টোকেন/সেশন হ্যান্ডেল করবে।
+  2. **বিকল্প B — Passwordless Authentication (WebAuthn Passkeys + Email OTP/Magic Link):** প্রথাগত পাসওয়ার্ড হ্যাশিংয়ের পরিবর্তে Public-Key ক্রিপ্টোগ্রাফি (Passkeys) বা স্বল্পমেয়াদি যাচাইকৃত OTP ব্যবহার করা (Free-tier Email শর্ত যাচাই সাপেক্ষে)।
+  3. **বিকল্প C — অনুমোদিত Free-tier Isolated Auth Verification Microservice:** যদি পাসওয়ার্ড-ভিত্তিক লগইন অপরিহার্য থাকে, তবে Free-tier-এ আলাদা CPU-সক্ষম কম্পিউট এনভায়রনমেন্টে কেবল Password Hashing/Verify কাজটি বিচ্ছিন্ন করা।
+  *(Benchmark সম্পন্ন ও বিকল্প চূড়ান্ত না হওয়া পর্যন্ত Auth Hashing বাস্তবায়ন Locked থাকবে না—এটি একটি বাধ্যতামূলক Pre-Implementation Gate।)*
 
-### ২.৩ Password Hashing ও Workers CPU Benchmark শর্ত
-- প্রতিটি পাসওয়ার্ডের জন্য ইউনিক ক্রিপ্টোগ্রাফিক Salt এবং Web Crypto API-ভিত্তিক Hashing (`PBKDF2-HMAC-SHA256`) ব্যবহারের পরিকল্পনা রয়েছে।
-- **বাধ্যতামূলক Benchmark নীতি:** Cloudflare Workers Free প্ল্যানে প্রতি ইনভোকেশনে **১০ মিলিসেকেন্ড CPU সময়সীমা** থাকে। তাই নিরাপদ Iteration সংখ্যা ধরে নেওয়া হবে না—বাস্তবায়নের আগেই প্রকৃত Workers এনভায়রনমেন্টে Benchmark করে নিশ্চিত করা হবে যে হ্যাশিং ও ভেরিফিকেশন নিরাপদভাবে ১০ms CPU সীমার মধ্যে সম্পন্ন হয়।
-
-### ২.৪ Admin One-time Secure Bootstrap ও বাধ্যতামূলক TOTP 2FA
-- **One-time Secure Bootstrap:** প্রথম Admin অ্যাকাউন্ট সাধারণ পাবলিক রেজিস্ট্রেশন দিয়ে তৈরি হবে না। একটি উচ্চ-এন্ট্রপির Bootstrap Secret বা CLI/Migration-নির্ভর **One-time Secure Bootstrap** প্রক্রিয়ায় প্রথম Admin তৈরি হবে এবং সিস্টেমে প্রথম Admin তৈরি হয়ে গেলেই Bootstrap মেকানিজম স্থায়ীভাবে বন্ধ হয়ে যাবে।
-- **Mandatory TOTP 2FA for Admin:** প্রতিটি Admin অ্যাকাউন্টে **TOTP (Time-based One-Time Password)** ২-স্তরের প্রমাণীকরণ বাধ্যতামূলক থাকবে।
-  - কেবল পাসওয়ার্ড দিয়ে Admin সেশন সম্পূর্ণ হবে না; বৈধ TOTP কোড যাচাইয়ের পরই Admin অ্যাক্সেস-সক্ষম সেশন ইস্যু হবে।
-  - TOTP Replay Attack ঠেকাতে সর্বশেষ ব্যবহৃত টাইম-স্টেপ/কোড ট্র্যাক করা হবে এবং TOTP প্রচেষ্টাতেও কঠোর Lockout ও Rate Limit প্রযোজ্য হবে।
-
-### ২.৫ Secure Password Reset
-- Turnstile CAPTCHA ও Rate Limiting-সহ কাজ করবে।
-- Reset টোকেন হবে উচ্চ-এন্ট্রপির র‍্যান্ডম মান, যার **হ্যাশকৃত রূপ** D1-এ স্বল্প মেয়াদে সংরক্ষিত থাকবে এবং এক ব্যবহারেই বাতিল হবে। সফল রিসেটের পর ইউজারের **সকল সক্রিয় সেশন Revoke** হবে।
-- *(Email Provider নির্বাচন Free-tier ও Domain Verification শর্ত যাচাইয়ের পর চূড়ান্ত হবে।)*
+### ২.৩ ৫-বার ব্যর্থতায় ১৫ মিনিট Lockout ও Account Lockout Abuse Prevention
+- **মূল Lockout নিয়ম:** পরপর ৫ বার ভুল Password-এ Account ১৫ মিনিটের জন্য Lock হবে (`D1`-নিয়ন্ত্রিত); Lock চলাকালীন সঠিক Password-এও Login হবে না; সর্বদা একই সাধারণ ব্যর্থতার বার্তা দেখাবে; ১৫ মিনিট পূর্ণ হলে `failed_login_attempts` শূন্য (`0`) হবে।
+- **Account Lockout Abuse Prevention (Targeted Lockout DoS প্রতিরোধ):**
+  আক্রমণকারী যাতে অন্যের ইমেইল জেনে ইচ্ছাকৃতভাবে বারবার ৫ বার ভুল পাসওয়ার্ড দিয়ে বৈধ ইউজারকে ১৫ মিনিট করে আটকে রাখতে না পারে, সেজন্য নিচের প্রতিরক্ষা যুক্ত থাকবে:
+  1. **Pre-Lockout Turnstile ও IP Burst Throttling:** প্রতিটি Login প্রচেষ্টায় Turnstile যাচাই বাধ্যতামূলক এবং Workers Rate Limiting API দিয়ে একই IP বা IP-prefix থেকে স্বল্প সময়ে অতিরিক্ত Login প্রচেষ্টা D1-এ পৌঁছানোর আগেই থামানো (`429`)।
+  2. **Secondary Abuse Signal ও IP-First Throttling:** কোনো একটি Account বারবার একাধিক ১৫-মিনিট Lockout-এর শিকার হলে সংশ্লিষ্ট উৎস IP-গুলোতে কঠোরতর Rate Limit / সাময়িক IP Block প্রয়োগ করা, যাতে একটি বট-নেটওয়ার্ক বা নির্দিষ্ট IP একটি অ্যাকাউন্টকে অনন্তকাল Lock করে রাখতে না পারে।
+  3. **নিরাপদ পুনরুদ্ধার পথ (Verified Email সাপেক্ষে):** Lockout চলাকালীন বা বারবার লকআউট অ্যাটাক হলে বৈধ ইউজারকে Security Notification পাঠানো (Email Provider চূড়ান্ত হলে) এবং পাসওয়ার্ড রিসেট / Admin সহায়তা প্রক্রিয়া সুরক্ষিত রাখা।
 
 ---
 
-## ৩. Session, Cookie ও CSRF সুরক্ষা
+## ৩. Atomic Admin Bootstrap ও Admin TOTP 2FA (Encrypted + Recovery Codes)
 
-### ৩.১ Secure Session Management ও Cookie বৈশিষ্ট্য
-- **Server-Side Stateful Session (D1):** সফল Login-এ তৈরি Session ID-এর **হ্যাশকৃত মান** `sessions` টেবিলে সংরক্ষিত হবে। সাধারণ Page View-তে কেবল Read করে সেশন যাচাই হবে (প্রতি Request-এ অপ্রয়োজনীয় D1 Write করা হবে না)।
-- **Cookie Flags:** `HttpOnly`, `Secure`, `SameSite=Lax` (বা `Strict`), `Path=/`।
+### ৩.১ Atomic One-time Admin Bootstrap
+- প্রথম Admin অ্যাকাউন্ট **Atomic One-time Secure Bootstrap** দিয়ে তৈরি হবে।
+- **Atomicity ও Single-Use গ্যারান্টি:** Bootstrap অপারেশন D1-এ Atomic শর্তসাপেক্ষ ট্রানজ্যাকশন/স্টেটমেন্টের মাধ্যমে চলবে (`system_bootstrap` টেবিলে `is_completed = 0` শর্তে আপডেট এবং প্রথম Admin তৈরি একসাথে সম্পন্ন হবে)। ফলে একই সময়ে দুটি সমান্তরাল রিকোয়েস্ট এলেও কেবল একটিই সফল হবে; দ্বিতীয়টি ব্যর্থ হবে।
+- **স্থায়ী নিষ্ক্রিয়করণ:** একবার Bootstrap সম্পন্ন হলে Bootstrap এন্ডপয়েন্ট/টোকেন পুনরায় ব্যবহার করা যাবে না (`403`/`410`) এবং Bootstrap Secret রোটেশন/অপসারণ বাধ্যতামূলক হবে।
 
-### ৩.২ Session Revocation
-নিচের ঘটনাগুলোতে Backend থেকে তাৎক্ষণিকভাবে সেশন `revoked` হবে:
-1. Logout।
-2. Password পরিবর্তন বা Reset (সকল সেশন বাতিল)।
-3. Admin কর্তৃক **Login Ban** প্রদান (সকল সেশন তাৎক্ষণিক বাতিল)।
-4. Admin কর্তৃক ম্যানুয়ালি সেশন বাতিল।
-
-### ৩.৩ CSRF Protection
-`SameSite` Cookie + Backend-এ `Origin`/`Referer` যাচাই + মিউটেটিং (`POST`, `PUT`, `PATCH`, `DELETE`) API কলগুলোতে কাস্টম Anti-CSRF হেডার/টোকেন যাচাই।
-
----
-
-## ৪. Backend Authorization, IDOR ও Revision Security
-
-### ৪.১ Mandatory Backend & Ownership (IDOR) Verification
-- প্রতিটি সুরক্ষিত রুটে Backend Middleware D1 থেকে বর্তমান ইউজারের অবস্থা যাচাই করবে:
-  - Active Session ও Non-expired Status।
-  - `Login Ban` নেই তো?
-  - Write/Edit রুটে `Posting Ban` নেই তো?
-  - Publisher রুটে D1-এ সক্রিয় **Publisher Permission** (বা Admin রোল) আছে তো?
-  - Admin রুটে রোল `admin` ও TOTP-verified সেশন আছে তো?
-- **IDOR (Insecure Direct Object Reference) প্রতিরোধ:**
-  - কোনো ইউজার বা Publisher যখন নির্দিষ্ট কোনো পোস্ট, পেন্ডিং রিভিশন, রিভিউ বা প্রোফাইল অবজেক্ট অ্যাক্সেস বা Edit করতে চাইবে, তখন Backend-কে অবশ্যই যাচাই করতে হবে যে অনুরোধকারী ইউজারই উক্ত অবজেক্টের মালিক (`resource.author_id === currentUser.id`) অথবা Admin।
-  - ক্লায়েন্ট থেকে পাঠানো `user_id` বা `author_id` কখনোই বিশ্বাস করা হবে না; সর্বদা সার্ভার-সাইড সেশন থেকে `currentUser.id` নেওয়া হবে।
-  - অননুমোদিত ইউজার অন্যের `Pending` পোস্ট বা `Pending` রিভিশন দেখতে বা এডিট করতে পারবে না (`403 Forbidden`)।
-
-### ৪.২ Privilege Escalation ও Revision Security
-- Signup বা Profile Update-এ `role` বা `is_publisher` ইনপুট সর্বদা উপেক্ষা/ব্লক করা হবে।
-- Publisher কোনো `Approved` পোস্ট Edit করলে তা সরাসরি লাইভ পোস্ট পরিবর্তন না করে নতুন **`Pending` Revision** তৈরি করবে; ফলে Admin অনুমোদনের আগে পাবলিক পোস্টে ক্ষতিকর পরিবর্তন দেখানো সম্ভব হবে না।
+### ৩.২ Admin TOTP Secret Encryption ও Recovery Code ব্যবস্থা
+- **TOTP Secret Encryption at Rest:** D1 ডাটাবেজে Admin-এর TOTP Secret কখনো Plain Text-এ রাখা যাবে না। Cloudflare Workers Environment Secret (`TOTP_ENCRYPTION_KEY`)-এর মাধ্যমে **AES-256-GCM** Authenticated Encryption (প্রতিটি রেকর্ডে ইউনিক Random IV/Nonce-সহ) ব্যবহার করে এনক্রিপ্ট করে D1-এ সংরক্ষণ করা হবে।
+- **Mandatory TOTP Verification:** পাসওয়ার্ড সঠিক হলেও Admin-এর সেশন পূর্ণ ক্ষমতা পাবে না যতক্ষণ না ডিক্রিপ্ট করা Secret-এর বিপরীতে বৈধ TOTP কোড যাচাই হয় (Replay ঠেকাতে সর্বশেষ ব্যবহৃত TOTP টাইম-স্টেপ সংরক্ষণসহ)।
+- **Recovery Code ব্যবস্থা:**
+  - Admin TOTP সক্রিয় করার সময় এককালীন ব্যবহারযোগ্য **উচ্চ-এন্ট্রপির Recovery Codes** (যেমন ৮–১০টি কোড) তৈরি হবে।
+  - Admin-কে কোডগুলো কেবল **একবার** প্রদর্শন করা হবে; Database-এ (`admin_recovery_codes`) কেবল কোডগুলোর **ক্রিপ্টোগ্রাফিক হ্যাশ** (Salt/HMAC-সহ) সংরক্ষিত থাকবে, আসল কোড নয়।
+  - একটি Recovery Code একবার ব্যবহৃত হলে `used_at` চিহ্নিত হয়ে স্থায়ীভাবে অকার্যকর হবে, ইভেন্টটি `security_logs` ও `admin_audit_logs`-এ লিপিবদ্ধ হবে এবং Admin-কে নতুন করে 2FA/Recovery Code রিজেনারেট করার নির্দেশনা দেওয়া হবে।
 
 ---
 
-## ৫. Input Validation, SSRF, Open Redirect, XSS ও SQLi সুরক্ষা
+## ৪. Session, Cookie, CSRF ও Authorization (IDOR, Revision & Quota)
 
-### ৫.১ Input Validation ও Safe HTTPS URL Policy (v1)
-- v1-এ পোস্টের Image/Icon এবং Website/App Link উভয়ের জন্য কেবল বৈধ ও নিরাপদ **`https://`** URL অনুমোদিত হবে (`http://`, `javascript:`, `data:`, `vbscript:` স্কিম ব্লক)।
-- রেটিং ১–৫ পূর্ণসংখ্যা, Ban Duration-এর মান ও একক (`minute`, `hour`, `day`, `month`, `year`) কঠোরভাবে যাচাই হবে।
+### ৪.১ Secure Session ও Cookie
+- সার্ভার-সাইড হ্যাশকৃত Session Token D1-এর `sessions` টেবিলে থাকবে।
+- Cookie অ্যাট্রিবিউট: `HttpOnly`, `Secure`, `SameSite=Lax` (বা `Strict`), `Path=/`।
+- Logout, Password Reset, Login Ban এবং Admin Revoke-এ সেশন তাৎক্ষণিকভাবে `revoked` হবে।
+- **ডেটা সুরক্ষা নীতি:** সক্রিয় সেশন, ইউজার পাসওয়ার্ড/হ্যাশ বা Ban রেকর্ড কোনো অসতর্ক Cleanup জবে কখনোই মুছে ফেলা যাবে না।
 
-### ৫.২ SSRF (Server-Side Request Forgery) Protection
-- Backend Worker কখনোই ব্যবহারকারী বা Publisher-এর দেওয়া `target_link` বা `icon_or_image` URL-এ সার্ভার-সাইড থেকে স্বয়ংক্রিয় `fetch()` বা প্রিভিউ রিকোয়েস্ট পাঠাবে না (v1-এ কেবল ফরম্যাট ও ডোমেইন/স্কিম ভ্যালিডেশন হবে)।
-- ভবিষ্যতে বা কোনো Webhook/External Integration-এ Backend থেকে আউটবাউন্ড রিকোয়েস্ট করতে হলে (যেমন Turnstile `siteverify` বা নির্বাচিত Email API):
-  - কেবল hardcoded/allowlisted অনুমোদিত হোস্টনেম ব্যবহার করা হবে।
-  - ব্যবহারকারী-নিয়ন্ত্রিত URL-এ কখনোই `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.0.0/16` (Cloud metadata), `localhost`, `::1` বা প্রাইভেট/রিজার্ভড IP রেঞ্জে রিকোয়েস্ট যেতে দেওয়া হবে না এবং অটোমেটিক HTTP Redirect ফলো করা হবে না।
+### ৪.২ CSRF Protection
+`SameSite` Cookie + Backend `Origin`/`Referer` যাচাই + মিউটেটিং রিকোয়েস্টে কাস্টম Anti-CSRF হেডার/টোকেন যাচাই।
 
-### ৫.৩ Open Redirect Protection
-- Login, Logout বা Password Reset-পরবর্তী যেকোনো Redirect প্যারামিটার (`next`, `redirect_to`) কেবল সিস্টেমের অভ্যন্তরীণ আপেক্ষিক পাথ (`/apps`, `/profile`) হিসেবে অনুমোদিত হবে।
-- পূর্ণ বহিরাগত URL (`https://evil.com`), প্রোটোকল-রিলেটিভ URL (`//evil.com`), বা ব্যাকস্ল্যাশ/এনকোডেড বাইপাস প্রচেষ্টা Backend ও SPA রাউটার উভয় স্তরে প্রত্যাখ্যাত হয়ে ডিফল্ট `/` পাথে পাঠানো হবে।
-
-### ৫.৪ XSS ও SQL Injection Protection
-- SPA-তে ইউজার ডেটা কখনোই কাঁচা `innerHTML`-এ রেন্ডার করা হবে না; সর্বদা `textContent` ও নিরাপদ DOM নির্মাণ ব্যবহৃত হবে। কঠোর CSP হেডার থাকবে।
-- D1 ডাটাবেজের প্রতিটি কুয়েরি **১০০% Parameterized Prepared Statement** দিয়ে চালানো হবে।
-
----
-
-## ৬. Three-Level Ban ও Rate Limiting Architecture
-
-### ৬.১ Login Ban ও Posting Ban এনফোর্সমেন্ট
-- **Login Ban:** Permanent বা `minute`/`hour`/`day`/`month`/`year` মেয়াদ অনুযায়ী `user_bans` টেবিলে সংরক্ষিত; সক্রিয় থাকলে লগইন নিষিদ্ধ ও চলমান সব সেশন বাতিল।
-- **Posting Ban:** সক্রিয় থাকলে Login ও Public Read চালু থাকবে, কিন্তু **নতুন Post**, **নতুন Review**, **নতুন Rating** এবং **বিদ্যমান Content (Post/Review) Edit**—এই চারটিই Backend-এ `403 Forbidden` দিয়ে বন্ধ থাকবে।
-
-### ৬.২ Multi-Layer Rate Limiting ও IP Security Ban (D1 ও KV ছাড়া Counter Write)
-1. **Layer 1 — Edge WAF (Cloudflare Free Plan):** Free Managed Ruleset + Custom Rules + Free Edge Rate Limiting Rule।
-2. **Layer 2 — Workers Rate Limiting API (Burst Mitigation Only):**
-   - Workers-এর বিল্ট-ইন Rate Limiting binding (১০ বা ৬০ সেকেন্ডের উইন্ডো) দিয়ে D1-এ কোনো Row Write না করেই অতিরিক্ত বার্স্ট রিকোয়েস্ট (`429`) থামানো হবে।
-   - **গুরুত্বপূর্ণ সীমাবদ্ধতা:** এই API প্রতি লোকেশনে আলাদা কাউন্টার রাখে এবং এর আচরণ **Approximate ও Eventually Consistent**। তাই এটি দিয়ে কঠোর Lockout গণনা করা যাবে না; কেবল প্রথম স্তরের অপব্যবহার কমানোর ঢাল হিসেবে ব্যবহার হবে।
-   - **KV নিষিদ্ধ:** Cloudflare KV-কে প্রধান Rate Limiting Counter Store হিসেবে ব্যবহার করা হবে না।
-   - **D1 Write সংরক্ষণ:** প্রতিটি সাধারণ Request-এ D1-এ কাউন্টার Write করা হবে না।
-3. **Layer 3 — Authoritative IP Bans (Cloudflare D1 `ip_bans`):**
-   - Admin-এর Manual IP Block এবং গুরুতর আক্রমণ শনাক্ত হলে স্বল্পমেয়াদি Temporary Auto-Block রেকর্ড **D1**-এ সংরক্ষিত হবে।
-   - **Shared IP সুরক্ষা:** কখনো স্বয়ংক্রিয় Permanent IP Ban হবে না; Shared IP (CGNAT/Campus) ব্যবহারকারী বৈধ ইউজার ভুলবশত ব্লক হলে Admin Dashboard থেকে তাৎক্ষণিক Unblock করা যাবে।
+### ৪.৩ Backend Authorization, IDOR, User Quota ও Revision Security
+- **Mandatory Backend Verification:** প্রতিটি প্রাইভেট/Publisher/Admin রুটে D1 থেকে বর্তমান User রোল, `is_publisher`, `Login Ban`, `Posting Ban` ও `totp_verified` যাচাই।
+- **IDOR প্রতিরোধ:** যেকোনো সিঙ্গেল পোস্ট, রিভিশন, রিভিউ বা প্রোফাইল রিকোয়েস্টে `resource.author_id === currentUser.id` (অথবা Admin) যাচাই বাধ্যতামূলক।
+- **Unique Review Constraint:** `reviews` টেবিলে `UNIQUE(item_id, user_id)` Constraint থাকায় কোনো User একই App/Website-এ একাধিক Review জমা দিয়ে রেটিং ম্যানিপুলেট করতে পারবে না।
+- **Dual Revision Security (Post ও Review উভয়ের জন্য):**
+  - Publisher কোনো `Approved` Post Edit করলে অথবা User কোনো `Approved` Review Edit করলে নতুন **`Pending` Revision** তৈরি হবে এবং পুরোনো `Approved` সংস্করণটি নতুনটি Approve না হওয়া পর্যন্ত Public থাকবে।
+- **Backend User Quota ও Content Limits:** D1-এর 500MB সীমা ও স্প্যাম প্রতিরোধে প্রতিটি User/Publisher-এর পোস্ট/রিভিশন/রিভিউ তৈরির দৈনিক ও মোট কোটা এবং প্রতিটি টেক্সট ফিল্ডের সর্বোচ্চ দৈর্ঘ্য Backend-এ কঠোরভাবে এনফোর্স করা হবে।
 
 ---
 
-## ৭. Security Logs (৩০ দিন Retention), Secret Redaction ও Append-only Audit Logs
+## ৫. Image URL নিরাপত্তা (HTTPS + CSP + Referrer Privacy + Safe Source Policy), SSRF ও Open Redirect
 
-### ৭.১ Security Logs ও বাধ্যতামূলক Secret Redaction
-- **সংরক্ষিত ইভেন্ট:** Failed Login, ১৫ মিনিট Lockout, Turnstile ব্যর্থতা, Rate Limit (`429`) ট্রিগার, Temp IP Block, IDOR/SSRF/Open Redirect/403 অ্যাক্সেস প্রচেষ্টা।
-- **Secret Redaction (বাধ্যতামূলক):** `security_logs`, `admin_audit_logs` বা কোনো সার্ভার লগে ডেটা লেখার আগে একটি কেন্দ্রীয় Redaction ইউটিলিটি চালাতে হবে, যাতে কখনোই:
-  - Raw Password বা Password Hash,
-  - Session ID / Cookie / Authorization হেডার,
-  - Turnstile Token / TOTP Secret / TOTP Code / Password Reset Token,
-  - বা Environment Secret লগে সংরক্ষিত না হয়। সংবেদনশীল কীগুলো `[REDACTED]` হিসেবে মাস্ক করা হবে।
-- **Retention নীতি:** `security_logs`-এর প্রাথমিক Retention হবে **৩০ দিন**; ৩০ দিনের পুরোনো সাধারণ সিকিউরিটি লগ পর্যায়ক্রমে পরিষ্কার করা হবে যাতে D1 Free টিয়ারের ৫ GB স্টোরেজ ও কোটা নিরাপদ থাকে।
+### ৫.১ Image/Icon URL নিরাপত্তা নীতি (v1)
+1. **Strict HTTPS Validation:** কেবল বৈধ `https://` স্কিমযুক্ত URL অনুমোদিত হবে (`http://`, `javascript:`, `data:`, `blob:`, `file:` সম্পূর্ণ নিষিদ্ধ)।
+2. **Content-Security-Policy (CSP):**
+   - `script-src 'self'` (ইনলাইন স্ক্রিপ্ট ও অচেনা স্ক্রিপ্ট ব্লক)।
+   - `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`।
+   - `img-src 'self' https:` (কিংবা অনুমোদিত Trusted Host তালিকা — `OPEN_QUESTIONS.md`-এ চিহ্নিত; `http:` ও অনিরাপদ `data:` সম্পূর্ণ নিষিদ্ধ)।
+3. **Referrer Privacy:**
+   - গ্লোবাল HTTP হেডার `Referrer-Policy: no-referrer` অথবা `strict-origin-when-cross-origin`, এবং প্রতিটি বাহ্যিক পোস্ট `<img>` ট্যাগে বাধ্যতামূলক `referrerpolicy="no-referrer"` ও বাহ্যিক `<a>` লিংকে `rel="noopener noreferrer nofollow"` ব্যবহার করা হবে, যাতে অ্যাডমিন বা প্রাইভেট URL পাথ তৃতীয় পক্ষের Image/Website সার্ভারে ফাঁস না হয়।
+4. **Safe Source & Rendering Policy:**
+   - Image কেবল `<img>` ট্যাগে রেন্ডার হবে; কোনো বাহ্যিক URL কখনো `<iframe>`, `<object>`, `<embed>` বা ইনলাইন `<svg>` হিসেবে লোড করা যাবে না।
+   - প্রাইভেট/লোকাল IP (`127.0.0.1`, `10.x`, `169.254.169.254`, `localhost`, `::1`) বিশিষ্ট URL ইনপুটেই ব্লক করা হবে।
+   - Database-এ কোনো বড় Image, Base64 ডেটা বা Video সংরক্ষণ করা হবে না।
 
-### ৭.২ Admin Audit Logs (Application-level Append-only)
-- Admin-এর প্রতিটি পদক্ষেপ (`GRANT_PUBLISHER`, `REVOKE_PUBLISHER`, `APPROVE_POST`, `APPROVE_REVISION`, `REJECT_POST`, `LOGIN_BAN`, `POSTING_BAN`, `UNBAN`, `IP_BLOCK`, `IP_UNBLOCK`) রেকর্ড হবে।
-- **Application-level Append-only:** অ্যাপ্লিকেশনের Worker API ও Admin Dashboard-এ Audit Log সম্পাদনা (`UPDATE`) বা মুছে ফেলার (`DELETE`) কোনো এন্ডপয়েন্ট বা UI থাকবে না। তবে এটি **Application-level Append-only**—Cloudflare অ্যাকাউন্ট বা অবকাঠামোগত স্তরে চূড়ান্ত বা Storage-layer Immutable হিসেবে দাবি করা হবে না।
-৪. সংশোধিত SYSTEM_ARCHITECTURE.md
+### ৫.২ SSRF, Open Redirect, XSS ও SQL Injection
+- **SSRF:** ব্যবহারকারী বা Publisher-এর দেওয়া কোনো `target_link` বা `icon_or_image` URL-এ Backend থেকে আউটবাউন্ড `fetch()` করা সম্পূর্ণ নিষিদ্ধ। কেবল Turnstile (`siteverify`) ও অনুমোদিত Email API-র মতো হার্ডকোডেড Allowlisted এন্ডপয়েন্টেই আউটবাউন্ড কল যাবে।
+- **Open Redirect:** `next`/`redirect_to` প্যারামিটারে কেবল অভ্যন্তরীণ আপেক্ষিক পাথ (`/apps`, `/profile`) অনুমোদিত; বহিরাগত ডোমেইন বা `//` বাইপাস প্রত্যাখ্যাত হবে।
+- **XSS ও SQLi:** Frontend-এ `textContent` (কাঁচা `innerHTML` নয়) এবং D1-এ ১০০% Parameterized Prepared Statements।
+
+---
+
+## ৬. Three-Level Ban, Rate Limiting, Retention ও Audit Logs
+
+- **Login Ban ও Posting Ban:** D1-এ সংরক্ষিত; Posting Ban নতুন Post, Review, Rating এবং বিদ্যমান Content Edit সম্পূর্ণ বন্ধ রাখবে, কিন্তু Login ও Public Browsing চালু থাকবে।
+- **IP Security Ban ও Rate Limiting:** Edge WAF + Workers Rate Limiting API (Approximate & Eventually Consistent Burst Throttling) + D1 Authoritative IP Ban Records (`ip_bans`)। **প্রতিটি Request-এ D1 Counter Write হবে না এবং KV প্রধান Rate Limit Store হবে না।** Shared IP-তে বৈধ ব্যবহারকারীদের জন্য অটো-পার্মানেন্ট ব্যান নিষিদ্ধ ও দ্রুত Unblock নিশ্চিত।
+- **Security Logs (৩০ দিন Retention ও Secret Redaction):** Password, Hash, Session, Cookie, Token, TOTP Secret/Code ও Recovery Code `[REDACTED]` হিসেবে মাস্ক করে লগ হবে। ৩০ দিনের বেশি পুরোনো সাধারণ `security_logs` ব্যাচড Cleanup দিয়ে পরিষ্কার হবে; তবে **Password, Session, Active Ban এবং Admin Audit Logs কখনো অসতর্ক Cleanup-এ মুছে ফেলা যাবে না**।
+- **Admin Audit Logs:** **Application-level Append-only** (অ্যাপ্লিকেশন API-তে কোনো Update/Delete এন্ডপয়েন্ট থাকবে না; তবে অবকাঠামোগত চূড়ান্ত Immutability দাবি করা হবে না)।
+৩. SYSTEM_ARCHITECTURE.md
 Markdown
 # ReviewHub — System Architecture Document
 
-> **ডকুমেন্টের ধরন:** System Architecture  
-> **আর্কিটেকচার নীতি:** ১০০% Free-Tier, Separated Frontend / Backend / Database, History API SPA, Zero Per-Request D1 Counter Writes
+> **ডকুমেন্টের ধরন:** System Architecture & Database Engineering Policy  
+> **আর্কিটেকচার নীতি:** ১০০% Free-Tier, Single Shared 500MB Cloudflare D1 Database, History API SPA, Zero Per-Request D1 Counter Writes
 
 ---
 
 ## ১. আর্কিটেকচারাল লক্ষ্য ও Free-Tier সীমাবদ্ধতা
 
-ReviewHub সম্পূর্ণভাবে ফ্রি-টিয়ার ক্লাউড সেবার মধ্যে পরিচালিত হওয়ার জন্য ডিজাইন করা হয়েছে:
-- **Cloudflare Workers Free Plan:** দৈনিক ১,০০,০০০ রিকোয়েস্ট এবং প্রতি ইনভোকেশনে **১০ মিলিসেকেন্ড CPU সময়সীমা**। ফলে ক্রিপ্টোগ্রাফিক অপারেশন (যেমন PBKDF2) বাস্তব Benchmark করে নিশ্চিত করতে হবে যে তা ১০ms সীমার ভেতরে থাকে।
-- **Cloudflare D1 Free Plan:** দৈনিক ৫০ লক্ষ Row Read, ১,০০,০০০ Row Write এবং ৫ GB স্টোরেজ। এই সীমা রক্ষায়:
-  1. **প্রতিটি Request-এ D1 Counter Write করা যাবে না।**
-  2. কেবল স্টেট-পরিবর্তনকারী ইভেন্টেই D1 Write হবে।
-  3. সব ফরেন-কি ও ফিল্টার কলামে **সঠিক SQL Indexing** বাধ্যতামূলক।
-  4. `security_logs`-এর প্রাথমিক Retention **৩০ দিন** রাখা হবে।
-- **Cloudflare Workers Rate Limiting API (Free):** কোনো D1 বা KV Write ছাড়াই ১০ বা ৬০ সেকেন্ডের উইন্ডোতে Approximate ও Eventually Consistent Burst Throttling দেয়।
-- **Cloudflare Turnstile (Free):** Login, Registration ও Password Reset-এ বিনা খরচে CAPTCHA।
-- **Cloudflare WAF (Free):** Free Managed Ruleset, ৫টি পর্যন্ত Custom Rule ও ১টি Edge Rate Limiting Rule (কাস্টম ডোমেইনে)।
+ReviewHub সম্পূর্ণভাবে ফ্রি-টিয়ার ক্লাউড সেবার বাস্তব সীমাবদ্ধতা মেনে চলার জন্য ডিজাইন করা হয়েছে:
+- **Cloudflare Workers (Free Plan):** দৈনিক ১,০০,০০০ রিকোয়েস্ট ও প্রতি ইনভোকেশনে **১০ মিলিসেকেন্ড CPU সময়সীমা** (HTTP ও Cron উভয়ের ক্ষেত্রে)। Password Hashing-এর জন্য deployed Workers-এ বাস্তব Benchmark বাধ্যতামূলক; ব্যর্থ হলে নিরাপত্তা না কমিয়ে অনুমোদিত Safe Fallback Plan প্রযোজ্য হবে।
+- **Cloudflare D1 (Free Plan) — কঠোর সীমা:**
+  - **সর্বোচ্চ ৫০০ MB (500MB) per-database সীমা** (Workers Free প্ল্যানে প্রতিটি D1 ডাটাবেজের সর্বোচ্চ আকার 500MB)।
+  - দৈনিক ৫০ লক্ষ Row Read, ১,০০,০০০ Row Write এবং প্রতি Worker ইনভোকেশনে সর্বোচ্চ ৫০টি D1 কুয়েরি।
+  - দৈনিক Read/Write সীমা অতিক্রম করলে D1 কুয়েরি এরর ফেরত দেয়।
+- **Workers Rate Limiting API (Free):** কোনো D1 বা KV Write ছাড়াই ১০s/৬০s উইন্ডোতে Approximate ও Eventually Consistent Burst Throttling দেয়।
+- **Cloudflare Turnstile (Free) ও Free WAF:** বিনা খরচে Bot চ্যালেঞ্জ ও প্রান্তিক WAF সুরক্ষা।
 
 ---
 
-## ২. High-Level System Architecture (চার স্তরের বিচ্ছিন্ন কাঠামো)
+## ২. Database Engineering Policy (বাধ্যতামূলক)
 
-1. **Edge Security Layer (Cloudflare Network & WAF):** HTTPS, DDoS প্রশমন, Free Managed WAF ও প্রাথমিক Edge Rate Limiting।
-2. **Presentation Layer (SPA Frontend — Cloudflare Workers Static Assets):** HTML5, CSS3, Vanilla JS ও Vite-এ নির্মিত Single-Page Application (History API Clean URLs-সহ)।
-3. **Application & Security API Layer (Backend — Cloudflare Workers):** `/api/*` রুটের সমস্ত লজিক, Turnstile যাচাই, TOTP 2FA, Lockout, Three-Level Ban এনফোর্সমেন্ট, Revision ওয়ার্কফ্লো, SSRF/IDOR/Open Redirect/CSRF সুরক্ষা এবং Secret-Redacted Logging।
-4. **Data Persistence Layer (Cloudflare D1):** মূল Database এবং Permanent/Authoritative Ban ও Audit Records-এর একক নির্ভরযোগ্য ভাণ্ডার। *(KV-কে Rate Limiting Counter Store হিসেবে ব্যবহার করা হবে না।)*
-
----
-
-## ৩. Frontend Architecture (History API SPA ও v1 Media Strategy)
-
-- **SPA Architecture with History API Clean URLs:**
-  - `/`, `/apps`, `/websites`, `/categories`, `/items/:slug`, `/login`, `/register`, `/profile`, `/admin` ইত্যাদি পরিচ্ছন্ন URL ব্যবহৃত হবে।
-  - Cloudflare Workers Static Assets-এ SPA ফলব্যাক কনফিগার করা হবে যাতে ব্রাউজার রিফ্রেশ বা ডাইরেক্ট লিংকে নন-API রুটগুলো `index.html` পরিবেশন করে এবং `/api/*` রুটগুলো Worker হ্যান্ডেল করে।
-  - পেজ পরিবর্তন ও *Hybrid Sci-Fi Cinematic Interface*-এর অ্যানিমেশন (Glass Panels, Bento Grid, Particle/Data Stream) মসৃণভাবে চলবে।
-- **v1 Media ও Visual Strategy:**
-  - **প্রথম সংস্করণে (v1) Hero Video থাকবে না।** এর ফলে ভারী ভিডিও অ্যাসেট ছাড়াই সাইট দ্রুত লোড হবে এবং Animated CSS/Canvas Particle ব্যাকগ্রাউন্ড দিয়ে Cinematic আবহ বজায় থাকবে।
-  - পোস্টের **Image/Icon**-এর জন্য কেবল Backend ও Frontend-এ যাচাইকৃত নিরাপদ **`https://` URL** ব্যবহার করা হবে (কোনো পেইড বা আলাদা মিডিয়া স্টোরেজ ছাড়াই)।
-- **Mobile & Desktop Responsive:** সম্পূর্ণ রেসপন্সিভ Bento Grid ও নেভিগেশন।
-- **Guest-First Experience:** কোনো Login বাধ্যবাধকতা ছাড়াই Public Content, Rating, Review, Search ও Category অ্যাক্সেসযোগ্য থাকবে।
-
----
-
-## ৪. Backend Architecture (Cloudflare Workers API Pipeline)
-
-প্রতিটি `/api/*` রিকোয়েস্ট নিচের Middleware ক্রম অনুসরণ করবে:
-
-1. **Security Headers & Origin/Open-Redirect Guard:** CSP, HSTS, X-Frame-Options, `X-Content-Type-Options: nosniff` ও Redirect প্যারামিটার ভ্যালিডেশন।
-2. **Workers Rate Limiting Binding (Approximate Burst Guard):** সংবেদনশীল রুটে প্রথম স্তরের দ্রুত থ্রটলিং (`429`), যা কোনো D1/KV Write খরচ করে না।
-3. **Authoritative IP Ban Check (D1 `ip_bans` Read):** ইনডেক্সকৃত `ip_address` দিয়ে সক্রিয় IP Block আছে কি না তা কেবল Read করে যাচাই।
-4. **CSRF Protection:** `POST`/`PUT`/`PATCH`/`DELETE` রিকোয়েস্টে `Origin`/`Referer` ও Anti-CSRF হেডার যাচাই।
-5. **Auth & Session Check (D1 `sessions` + `users` Read):** `HttpOnly` কুকির হ্যাশ যাচাই করে বর্তমান User, তার `role`, `is_publisher`, `totp_verified` (Admin-এর জন্য) এবং সক্রিয় `Login Ban` / `Posting Ban` স্ট্যাটাস লোড করা। *(সাধারণ Read-এ কোনো D1 Write হবে না।)*
-6. **Ban & Role Guards:**
-   - **Login Ban Active:** সেশন `revoked` করে `403` ফেরত দেওয়া।
-   - **Posting Ban Active (Write/Edit রুটে):** নতুন Post, Review, Rating বা Content Edit-এ `403` ফেরত দেওয়া।
-   - **Publisher Guard:** D1 থেকে প্রাপ্ত বর্তমান `is_publisher` (বা `admin`) যাচাই।
-   - **Admin Guard:** `role === 'admin'` এবং `totp_verified === true` যাচাই।
-   - **Ownership (IDOR) Guard:** সিঙ্গেল-আইটেম Edit/Private Read-এ `author_id === currentUser.id` যাচাই।
-7. **Service Execution, Secret Redaction & Logging:** Parameterized D1 কুয়েরি চালানো এবং প্রয়োজনীয় ইভেন্টগুলো Secret Redaction-এর পর `security_logs` বা `admin_audit_logs`-এ Append করা।
+১. **Single Shared 500MB D1 Database:**
+   - ReviewHub-এর জন্য **একটি Shared Cloudflare D1 Database** ব্যবহৃত হবে। **500MB সীমাটি সমগ্র ReviewHub Database-এর সম্মিলিত সীমা**, কোনো একক User-এর ব্যক্তিগত বরাদ্দ নয়।
+২. **Backend-নিয়ন্ত্রিত User Quota ও Content Limits:**
+   - একজন বা কয়েকজন ইউজার যাতে অসংখ্য পোস্ট, রিভিশন বা বড় টেক্সট দিয়ে 500MB স্টোরেজ পূর্ণ করতে না পারে, সেজন্য Backend থেকে কঠোর **User Quota** (যেমন প্রতি User/Publisher-এর দৈনিক ও মোট পোস্ট/রিভিশন/রিভিউ সীমা) এবং **Content Size Limits** (সর্বোচ্চ অক্ষর সীমা) এনফোর্স করা হবে।
+৩. **কোনো বড় Image বা Video Database-এ নয় (v1):**
+   - প্রথম সংস্করণে (v1) D1 Database-এ কোনো বড় Image BLOB, Base64 Image বা Video রাখা যাবে না। কেবল নিরাপদ ও দৈর্ঘ্য-সীমাবদ্ধ `https://` Image/Icon URL সংরক্ষিত হবে।
+৪. **Database Storage Monitoring (70% / 85% / 95% Alerts):**
+   - `PRAGMA page_count * PRAGMA page_size` অথবা D1 স্টোরেজ মেট্রিক্সের মাধ্যমে ডাটাবেজ ব্যবহার পর্যবেক্ষণ করা হবে এবং নিচের তিনটি থ্রেশহোল্ডে স্বয়ংক্রিয় সতর্কতা ও পদক্ষেপ সক্রিয় হবে:
+     - **70% ব্যবহার (প্রায় 350MB):** Admin Dashboard-এ Warning সতর্কতা + মেয়াদোত্তীর্ণ Security Log Cleanup যাচাই।
+     - **85% ব্যবহার (প্রায় 425MB):** High Alert + অগ্রাধিকারভিত্তিক Expired Log Cleanup ও নন-ক্রিটিক্যাল লগিং সীমিতকরণ।
+     - **95% ব্যবহার (প্রায় 475MB):** Critical Alert + নতুন Post/Review/Non-essential Write সুরক্ষামূলকভাবে নিয়ন্ত্রণ (Read-mostly সুরক্ষা মোড), যাতে Auth, Session ও জরুরি Admin/Ban অপারেশন ভেঙে না যায়।
+৫. **Index, Query Optimization ও Pagination (বাধ্যতামূলক):**
+   - প্রতিটি ফিল্টার, জয়েন ও সর্টিং কলামে (যেমন `email`, `slug`, `status`, `author_id`, `item_id`, `user_id`, `ip_address`, `expires_at`, `created_at`) **SQL Index** থাকবে।
+   - `SELECT *` বা ফুল-টেবিল স্ক্যান সম্পূর্ণ নিষিদ্ধ; কেবল প্রয়োজনীয় কলাম নির্বাচন করতে হবে।
+   - সব তালিকা (Public Discovery, Reviews, My Posts, Admin Users, Moderation Queues, Security Logs, Audit Logs) অবশ্যই **Pagination** (`LIMIT`/`OFFSET` বা Cursor Pagination) সহকারে পরিবেশিত হবে।
+৬. **প্রতি Request-এ D1 Counter Write নিষিদ্ধ ও KV নিষিদ্ধ:**
+   - সাধারণ Page View বা Public Read-এ কখনো D1 Write হবে না।
+   - KV-কে প্রধান Rate Limiting Counter Store হিসেবে ব্যবহার করা হবে না।
+7. **নিরাপদ Cleanup ও সুরক্ষিত Security Data নীতি:**
+   - কেবল মেয়াদোত্তীর্ণ `security_logs` (৩০ দিন Retention), ব্যবহৃত/মেয়াদোত্তীর্ণ `password_resets`, এবং পুরোনো মেয়াদোত্তীর্ণ `sessions` (অতিরিক্ত মেয়াদ শেষ হওয়ার পর) নিরাপদ ছোট ব্যাচে পরিষ্কার করা যাবে।
+   - **অসতর্ক Deletion নিষিদ্ধ:** Cleanup বা Maintenance প্রক্রিয়ায় কখনোই `users`-এর Password Hash, TOTP Secret, Recovery Code Hash, সক্রিয় `sessions`, সক্রিয়/স্থায়ী `user_bans`/`ip_bans`, `system_bootstrap` এবং `admin_audit_logs` মুছে ফেলা যাবে না।
 
 ---
 
-## ৫. Conceptual Data Model (Cloudflare D1 — কোড ব্যতীত)
+## ৩. High-Level System Architecture
 
-D1-এর ৫ GB স্টোরেজ ও দৈনিক কোটা রক্ষায় নিচের টেবিলগুলোতে প্রয়োজনীয় ইনডেক্স থাকবে:
+চারটি বিচ্ছিন্ন স্তর:
+1. **Edge Security Layer:** Cloudflare Network, Free WAF ও প্রাথমিক Edge Rate Limiting।
+2. **Presentation Layer (SPA):** HTML5, CSS3, Vanilla JS ও Vite-এ নির্মিত **History API Clean URLs** SPA (Cloudflare Workers Static Assets)। v1-এ Hero Video ছাড়াই Animated/Particle ব্যাকগ্রাউন্ড ও `img-src` CSP + `referrerpolicy="no-referrer"` সহ নিরাপদ `https://` Image প্রদর্শন।
+3. **Application & Security API Layer:** Cloudflare Workers (`/api/*`), যেখানে Auth, Turnstile, Benchmark-সাপেক্ষ Hashing/Fallback, TOTP 2FA, Ban Guards, Revision Logic, Quota, SSRF/IDOR/Open Redirect/CSRF সুরক্ষা ও Secret-Redacted Logging চলবে।
+4. **Data Persistence Layer:** একক Shared **Cloudflare D1 (500MB সীমা)**।
 
-| টেবিলের নাম (প্রস্তাবিত) | উদ্দেশ্য ও মূল তথ্যসমূহ |
+---
+
+## ৪. Backend Middleware Pipeline
+
+প্রতিটি `/api/*` রিকোয়েস্ট নিচের ক্রমে প্রক্রিয়াজাত হবে:
+1. **Security Headers, CSP & Open-Redirect Guard**
+2. **Workers Rate Limiting Binding** (Approximate Burst Guard — D1/KV Write ছাড়াই)
+3. **Authoritative IP Ban Read Check** (D1 Indexed `ip_bans`)
+4. **CSRF Protection** (`Origin`/`Referer` + Custom Header)
+5. **Session & Auth Read Check** (D1 Indexed `sessions` + `users`, Read-only on valid normal requests)
+6. **Ban Guards** (`Login Ban` -> Revoke & `403`; `Posting Ban` -> Write/Edit ব্লক `403`)
+7. **Role / TOTP / Ownership Guards** (`admin` + `totp_verified`, `publisher-guard`, `IDOR` মালিকানা যাচাই)
+8. **User Quota, Input/HTTPS URL Validation & Storage Guard** (95% স্টোরেজ থ্রেশহোল্ড চেকসহ)
+9. **Prepared D1 Execution & Secret-Redacted Logging**
+
+---
+
+## ৫. Conceptual Data Model (Cloudflare D1 — Shared 500MB, কোড ব্যতীত)
+
+| টেবিলের নাম (প্রস্তাবিত) | উদ্দেশ্য, Constraints ও Indexing মূলনীতি |
 | :--- | :--- |
-| **`users`** | ইউজার আইডি, নাম, ইউনিক ইমেইল, পাসওয়ার্ড হ্যাশ ও সল্ট, রোল (`user` / `admin`), `is_publisher` ফ্ল্যাগ, `failed_login_attempts`, `locked_until`, `totp_enabled`, `totp_secret_encrypted`, টাইমস্ট্যাম্প। |
-| **`system_bootstrap`** | প্রথম Admin One-time Bootstrap সম্পন্ন হয়েছে কি না (`is_completed`, `completed_at`)—যাতে একবার সম্পন্ন হলে আর কখনো ব্যবহার করা না যায়। |
-| **`sessions`** | সেশন টোকেন হ্যাশ, `user_id`, `totp_verified` (Admin সেশনের জন্য), `expires_at`, `revoked_at`। |
-| **`password_resets`** | রিসেট টোকেন হ্যাশ, `user_id`, `expires_at`, `used_at`। |
-| **`categories`** | ক্যাটাগরি আইডি, নাম, স্লাগ। |
-| **`items` (Canonical Public Posts)** | আইডি, `type` (`app` / `website`), `author_id`, `category_id`, `slug`, `status` (`Pending` / `Approved` / `Rejected`), বর্তমানে প্রকাশিত `published_revision_id` (থাকলে), `avg_rating`, `review_count`, টাইমস্ট্যাম্প। |
-| **`item_revisions` (Post Content & Edit Revisions)** | `revision_id`, `item_id`, `author_id`, `title`, `description`, `category_id`, `target_link` (`https://`), `icon_or_image` (`https://`), `additional_text`, `revision_status` (`Pending` / `Approved` / `Rejected`), `reviewed_by_admin_id`, `reviewed_at`, `created_at`। *(এর মাধ্যমেই Approved পোস্ট Edit করলে পুরোনোটি Public থাকে এবং নতুনটি Pending Revision হিসেবে যায়।)* |
-| **`reviews`** | আইডি, `item_id`, `user_id`, `rating` (১–৫), `comment`, `status` (`Pending` / `Approved` / `Rejected`), টাইমস্ট্যাম্প। |
-| **`user_bans`** | আইডি, `user_id`, `ban_type` (`login` / `posting`), `is_permanent`, `duration_value`, `duration_unit`, `expires_at`, `reason`, `issued_by_admin_id`, `revoked_at`, `revoked_by_admin_id`। |
-| **`ip_bans`** | আইডি, `ip_address`, `ban_mode` (`auto_temp` / `manual`), `reason`, `expires_at`, `is_active`, `created_by_admin_id`, `unblocked_at`, `unblocked_by_admin_id`। |
-| **`security_logs`** | আইডি, `event_type`, `ip_address`, `user_id` (ঐচ্ছিক), `endpoint`, Secret-Redacted `details`, `created_at` (**৩০ দিনের প্রাথমিক Retention**)। |
-| **`admin_audit_logs`** | আইডি, `admin_id`, `action`, `target_type`, `target_id`, Redacted `metadata`, `admin_ip`, `created_at` (**Application-level Append-only**)। |
-
----
-
-## ৬. গুরুত্বপূর্ণ End-to-End প্রবাহ (হালনাগাদ)
-
-### ৬.১ Publisher Approved Post Edit ও Revision প্রবাহ
-Publisher একটি `Approved` পোস্ট Edit করে সাবমিট করলে:
-1. Backend `auth` + `Posting Ban` (না থাকা) + `publisher-guard` + `IDOR ownership` (`item.author_id === currentUser.id`) যাচাই করে।
-2. `items.published_revision_id` অপরিবর্তিত থাকে (ফলে Public দর্শকরা আগের Approved সংস্করণটিই দেখতে থাকেন)।
-3. `item_revisions` টেবিলে নতুন একটি সারি `revision_status = 'Pending'` হিসেবে তৈরি হয়।
-4. Admin Dashboard-এর Post Approval প্যানেলে Pending Revision-টি দেখা যায়। Admin **Approve** করলে `items.published_revision_id` নতুন Revision-এ আপডেট হয় এবং `admin_audit_logs`-এ রেকর্ড যোগ হয়।
-
-### ৬.২ Admin Bootstrap ও Mandatory TOTP 2FA প্রবাহ
-1. সিস্টেম প্রথমবার সেটআপের সময় `system_bootstrap` যাচাই করে One-time Secure Bootstrap-এর মাধ্যমে প্রথম Admin অ্যাকাউন্ট তৈরি হয় এবং সাথে সাথে Bootstrap স্থায়ীভাবে নিষ্ক্রিয় হয়।
-2. Admin লগইনের সময় Turnstile + Password যাচাইয়ের পর বাধ্যতামূলক TOTP কোড যাচাই হয়। সফল TOTP যাচাইয়ের পরই `totp_verified = true` সহ Admin সেশন তৈরি হয়।
-
-### ৬.৩ Security Log Cleanup (৩০ দিন Retention)
-- Cloudflare Workers-এর ফ্রি Cron Trigger অথবা অ্যাডমিন/ব্যাচড রক্ষণাবেক্ষণ রুটিনের মাধ্যমে ৩০ দিনের পুরোনো `security_logs` নিয়মিত পরিষ্কার করা হবে, যাতে D1 Free স্টোরেজ ও কোটা স্থিতিশীল থাকে।
-৫. সংশোধিত OPEN_QUESTIONS.md
+| **`users`** | আইডি, নাম, `UNIQUE(email)`, পাসওয়ার্ড হ্যাশ/সল্ট (বা অনুমোদিত Fallback Auth রেফারেন্স), রোল (`user`/`admin`), `is_publisher`, `failed_login_attempts`, `locked_until`, `totp_enabled`, `totp_secret_encrypted` (AES-256-GCM), `last_totp_step`, টাইমস্ট্যাম্প। |
+| **`admin_recovery_codes`** | আইডি, `admin_user_id`, `code_hash` (সাল্টেড/HMAC হ্যাশ), `used_at`, `created_at`। |
+| **`system_bootstrap`** | একক কন্ট্রোল রো (`id = 1`), `is_completed`, `completed_at`, `completed_by_user_id` — Atomic এককালীন Bootstrap গ্যারান্টি। |
+| **`sessions`** | `UNIQUE(token_hash)`, `user_id`, `totp_verified`, `expires_at`, `revoked_at` (Indexed on `token_hash`, `user_id`, `expires_at`)। |
+| **`password_resets`** | `UNIQUE(token_hash)`, `user_id`, `expires_at`, `used_at`। |
+| **`categories`** | আইডি, নাম, `UNIQUE(slug)`। |
+| **`items` (Canonical Posts)** | আইডি, `type` (`app`/`website`), `author_id`, `category_id`, `UNIQUE(slug)`, `status` (`Pending`/`Approved`/`Rejected`), `published_revision_id`, `avg_rating`, `review_count`, টাইমস্ট্যাম্প (Indexed on `type, status, category_id, avg_rating`)। |
+| **`item_revisions`** | `revision_id`, `item_id`, `author_id`, `title`, `description`, `category_id`, `target_link` (`https://`), `icon_or_image` (`https://`), `additional_text`, `revision_status` (`Pending`/`Approved`/`Rejected`), `reviewed_by_admin_id`, `reviewed_at`, `created_at`। |
+| **`reviews` (Canonical Review per User per Item)** | আইডি, `item_id`, `user_id`, **`UNIQUE(item_id, user_id)`**, `status` (`Pending`/`Approved`/`Rejected`), `published_revision_id`, টাইমস্ট্যাম্প। *(Database স্তরে একই ইউজারের ডুপ্লিকেট রিভিউ প্রতিরোধ করে।)* |
+| **`review_revisions`** | `revision_id`, `review_id`, `user_id`, `rating` (১–৫), `comment`, `revision_status` (`Pending`/`Approved`/`Rejected`), `reviewed_by_admin_id`, `reviewed_at`, `created_at`। *(Approved রিভিউ Edit করলে নতুন Pending Revision তৈরি হয় ও পুরোনো Approved রিভিউ Public থাকে।)* |
+| **`user_bans`** | আইডি, `user_id`, `ban_type` (`login`/`posting`), `is_permanent`, `duration_value`, `duration_unit`, `expires_at`, `reason`, `issued_by_admin_id`, `revoked_at`, `revoked_by_admin_id`। |
+| **`ip_bans`** | আইডি, `ip_address`, `ban_mode` (`auto_temp`/`manual`), `reason`, `expires_at`, `is_active`, `created_by_admin_id`, `unblocked_at`, `unblocked_by_admin_id`। |
+| **`security_logs`** | আইডি, `event_type`, `ip_address`, `user_id`, `endpoint`, Secret-Redacted `details`, `created_at` (**৩০ দিন Retention**, Indexed on `created_at, event_type, ip_address`)। |
+| **`admin_audit_logs`** | আইডি, `admin_id`, `action`, `target_type`, `target_id`, Redacted `metadata`, `admin_ip`, `created_at` (**Application-level Append-only**, সুরক্ষিত—ক্লিনআপে ডিলিট নিষিদ্ধ)। |
+| **`storage_telemetry` (ঐচ্ছিক মেটা)** | সর্বশেষ পর্যবেক্ষিত D1 সাইজ, শতাংশ (`70%`/`85%`/`95%` সতর্কতা স্টেট) ও শেষ Cleanup টাইমস্ট্যাম্প। |
+৪. OPEN_QUESTIONS.md
 Markdown
-# ReviewHub — Open Questions & Technical Review Resolutions
+# ReviewHub — Open Questions & Final Verification Checklist
 
-> **উদ্দেশ্য:** Project Engineer-এর সর্বশেষ Technical Review অনুযায়ী যেসব প্রশ্ন চূড়ান্তভাবে নিষ্পত্তি (Resolved) হয়েছে এবং যে অল্পসংখ্যক বিষয় এখনো বাস্তব যাচাই/Benchmark বা অনুমোদনের অপেক্ষায় আছে, তা নিচে স্পষ্টভাবে ভাগ করে দেওয়া হলো।
-
----
-
-## ১. Technical Review দ্বারা নিষ্পত্তিকৃত বিষয়সমূহ (Resolved Questions)
-
-আগের তালিকা থেকে নিচের বিষয়গুলো Project Engineer-এর সর্বশেষ Technical Review অনুযায়ী **চূড়ান্তভাবে সমাধান** হয়ে গেছে:
-
-1. **Posting Ban-এর পরিধি (Resolved):** Posting Ban-এ নতুন Post, Review, Rating এবং বিদ্যমান যেকোনো Content (Post/Review) Edit সম্পূর্ণ বন্ধ থাকবে; কেবল Login ও Public Browsing চালু থাকবে।
-2. **Publisher Approved Post Edit নীতি (Resolved):** Approved পোস্ট Edit করলে নতুন `Pending` Revision তৈরি হবে এবং নতুনটি Approve না হওয়া পর্যন্ত পুরোনো `Approved` সংস্করণ Public থাকবে।
-3. **১৫ মিনিট Lock শেষ হওয়ার পর Counter আচরণ (Resolved):** ১৫ মিনিট Lock সময়কাল শেষ হলে `failed_login_attempts` কাউন্টার শূন্য (`0`) হয়ে যাবে।
-4. **Rate Limiting ও Ban Storage স্থাপত্য (Resolved):**
-   - Workers Rate Limiting API কেবল Approximate ও Eventually Consistent Burst Throttling হিসেবে ব্যবহার হবে।
-   - প্রতিটি Request-এ D1 Counter Write করা যাবে না।
-   - KV-কে প্রধান Rate Limiting Counter Store করা হবে না।
-   - D1 হবে মূল Database এবং স্থায়ী/Authoritative Ban Record-এর একক উৎস।
-5. **প্রথম Admin ও 2FA নীতি (Resolved):** প্রথম Admin One-time Secure Bootstrap-এর মাধ্যমে তৈরি হবে এবং Admin লগইনে TOTP 2FA বাধ্যতামূলক থাকবে।
-6. **Audit Logs প্রকৃতি (Resolved):** Audit Logs হবে **Application-level Append-only** (সম্পূর্ণ Immutable দাবি করা হবে না)।
-7. **Security Logs Retention (Resolved):** প্রাথমিক Retention হবে **৩০ দিন**।
-8. **SPA Routing মোড (Resolved):** SPA-তে **History API Clean URLs** ব্যবহার করা হবে।
-9. **v1 Media ও Hero Video সিদ্ধান্ত (Resolved):** প্রথম সংস্করণে (v1) **Hero Video থাকবে না** এবং Image/Icon-এর জন্য নিরাপদ **`https://` URL** ব্যবহার করা হবে।
+> **উদ্দেশ্য:** Project Engineer-এর সর্বশেষ Technical Review-এর পর যে বিষয়গুলো চূড়ান্তভাবে নিষ্পত্তি হয়েছে এবং যেগুলো এখনো বাস্তব Benchmark, External Verification বা সংখ্যাত্মক অনুমোদনের অপেক্ষায় আছে, সেগুলো এখানে স্পষ্টভাবে পৃথক করা হলো। কোনো অসম্পূর্ণ বিষয়কে Confirmed হিসেবে দেখানো হয়নি।
 
 ---
 
-## ২. এখনো যাচাই ও অনুমোদনের অপেক্ষায় থাকা প্রশ্নসমূহ (Remaining Open Questions)
+## ১. Technical Review-এ চূড়ান্তভাবে নিষ্পত্তিকৃত বিষয়সমূহ (Resolved)
 
-### ক. বাস্তব Benchmark ও বাহ্যিক শর্ত যাচাই-নির্ভর (Mandatory Pre-Implementation Checks)
+1. **D1 Database সীমা ও Shared মডেল:** পুরো ReviewHub একটি Shared D1 Database ব্যবহার করবে, যার সর্বোচ্চ সীমা **500MB per-database**; 70%/85%/95% স্টোরেজ মনিটরিং এবং Index + Query Optimization + Pagination বাধ্যতামূলক।
+2. **Same-User Duplicate Review প্রতিরোধ:** Database-এ `reviews` টেবিলে **`UNIQUE(item_id, user_id)`** Constraint থাকবে।
+3. **Review Edit ও Revision আচরণ:** Approved Review Edit করলে নতুন **`Pending` Review Revision** তৈরি হবে এবং **পুরোনো `Approved` Review নতুনটি Approve না হওয়া পর্যন্ত Public থাকবে**।
+4. **Publisher Post Edit ও Revision আচরণ:** Approved Post Edit করলে নতুন `Pending` Revision তৈরি হবে এবং পুরোনো Approved Post Public থাকবে।
+5. **Admin Bootstrap ও TOTP Security:** First Admin Bootstrap **Atomic** ও একবার সম্পন্ন হলে পুনরায় ব্যবহারের অযোগ্য; Admin TOTP Secret **AES-256-GCM এনক্রিপ্টেড** থাকবে এবং হ্যাশকৃত এককালীন **Recovery Codes** থাকবে।
+6. **Image URL নীতি (v1):** বড় Image/Video DB-তে থাকবে না; কেবল `https://` Image/Icon URL + **CSP + Referrer Privacy (`no-referrer`) + Safe `<img>` Source Policy** ব্যবহৃত হবে।
+7. **Account Lockout ও Abuse Prevention:** ১৫ মিনিট লক শেষে কাউন্টার শূন্য (`0`) হবে + Turnstile ও IP/Prefix-ভিত্তিক Lockout Abuse Prevention থাকবে।
+8. **Posting Ban, Rate Limit, Retention, SPA ও v1 Video:** Posting Ban-এ নতুন Post/Review/Rating ও Content Edit বন্ধ; প্রতিটি Request-এ D1 Write ও KV Rate Limit Store নিষিদ্ধ; Workers Rate Limit কেবল Approximate Burst Guard; Audit Logs Application-level Append-only; Security Logs Retention ৩০ দিন; History API Clean URLs SPA; v1-এ Hero Video নেই।
 
-1. **Workers 10ms CPU সীমার মধ্যে PBKDF2 Iteration সংখ্যা চূড়ান্তকরণ:**
-   - **প্রেক্ষাপট:** Technical Review অনুযায়ী PBKDF2 Workers-এর ১০ms CPU সীমার ভেতর চলবে বলে ধরে নেওয়া যাবে না।
-   - **সিদ্ধান্ত বাকি:** Cloudflare Workers Free এনভায়রনমেন্টে বাস্তব Benchmark চালানোর পর কোন PBKDF2 Iteration সংখ্যা (এবং প্রয়োজনে Web Crypto প্যারামিটার) নিরাপত্তা ও ১০ms CPU সীমার মধ্যে নিরাপদ ভারসাম্য দেয় তা চূড়ান্ত করতে হবে।
-2. **Password Reset Email Provider নির্বাচন (Free-tier ও Verification যাচাই):**
-   - **প্রেক্ষাপট:** কোনো সার্ভিস চূড়ান্ত করার আগে তার বর্তমান Free-tier সীমা ও Domain/Sender Verification শর্ত যাচাই করতে হবে।
-   - **সিদ্ধান্ত বাকি:** কোন ফ্রি ট্রানজ্যাকশনাল ইমেইল সার্ভিস (যেমন Resend, Brevo বা সমতুল্য) কাস্টম ডোমেইন/DNS ভেরিফিকেশন শর্ত পূরণ করে বিনা খরচে ব্যবহারযোগ্য—তা যাচাই করে Project Engineer-এর অনুমোদন নিতে হবে। (কাস্টম ডোমেইন না থাকলে Password Reset কীভাবে চলবে তাও স্পষ্ট করতে হবে)।
+---
 
-### খ. ক্ষুদ্রতর বাস্তবায়ন-স্তরের প্রশ্ন (Implementation-Level Clarifications)
+## ২. এখনো অসম্পূর্ণ / যাচাই ও অনুমোদনের অপেক্ষায় থাকা বিষয়সমূহ (Open Questions — Pending Approval)
 
-3. **Targeted Account Lockout DoS প্রশমন:**
-   - কোনো হামলাকারী ভিন্ন ভিন্ন IP ব্যবহার করে Turnstile পাস করে নির্দিষ্ট বৈধ ইউজারের ইমেইলে ৫ বার ভুল পাসওয়ার্ড দিয়ে বারবার ১৫ মিনিট লক করার চেষ্টা করলে, D1-ভিত্তিক লকআউটের পাশাপাশি অতিরিক্ত IP+Email কম্বিনেশন সতর্কতা বা নোটিফিকেশন যুক্ত করা হবে কি না?
-4. **Auto Temporary IP Block-এর সুনির্দিষ্ট সময়সীমা ও IPv6 গ্রানুলারিটি:**
-   - Workers Rate Limiting ও Anomaly Check-এর পর স্বয়ংক্রিয় সাময়িক IP Block কত মিনিটের জন্য হবে (যেমন ৫ বা ১৫ মিনিট), এবং IPv6 ব্যবহারকারীদের ক্ষেত্রে একক `/128` নাকি `/64` প্রিফিক্স অনুযায়ী ব্লক/লিমিট করা হবে?
-5. **Admin TOTP Secret এনক্রিপশন ও Recovery প্রক্রিয়া:**
-   - D1-এ সংরক্ষিত Admin TOTP Secret কী-টি Cloudflare Workers Environment Secret (`TOTP_ENCRYPTION_KEY`) দিয়ে AES-GCM এনক্রিপ্ট করে রাখা হবে কি না?
-   - কোনো Admin তার Authenticator ডিভাইস হারিয়ে ফেললে Recovery Code বা নিরাপদ পুনরুদ্ধার প্রক্রিয়া কী হবে?
-6. **৩০ দিনের Security Logs Cleanup ট্রিগার পদ্ধতি:**
-   - ৩০ দিনের পুরোনো `security_logs` মুছতে Cloudflare Workers-এর Free Cron Trigger (যেমন দৈনিক একবার) ব্যবহার করা হবে নাকি Admin Dashboard থেকে বা লগ ইনসার্টের সময় সীমিত ব্যাচড ক্লিনআপ চালানো হবে?
-7. **History API SPA-তে Public Item পেজের Meta/SEO প্রয়োজনীয়তা:**
-   - History API Clean URLs চূড়ান্ত হওয়ার পর, কোনো Public App/Website লিংক সোশ্যাল মিডিয়ায় শেয়ার করলে Dynamic OpenGraph/Title দেখানোর প্রয়োজন আছে কি না (নাকি v1-এ সাধারণ SPA Index মেটা ট্যাগই যথেষ্ট)?
-৬. চূড়ান্ত সিদ্ধান্ত বনাম অনুমোদনের অপেক্ষায় থাকা সিদ্ধান্তের তালিকা
-ক. চূড়ান্তকৃত সিদ্ধান্তসমূহ (Confirmed Decisions — পূর্ববর্তী + Technical Review সমন্বিত)
-Guest Access: Login/Register বাধ্যতামূলক নয়; Guest সব Public Post, Rating, Review, Search ও Category দেখতে ও ব্যবহার করতে পারবে।
-Verified Publisher System ও Revision নীতি: Signup-এ Publisher নয়; Admin অনুমতি ও তাৎক্ষণিক বাতিল ক্ষমতা; নিজের পোস্ট Edit; নতুন পোস্ট Pending; Approved পোস্ট Edit করলে নতুন Pending Revision তৈরি হবে ও পুরোনো Approved সংস্করণ Public থাকবে; Admin Approve করলে তবেই Public/আপডেট; Backend-এ সব যাচাই বাধ্যতামূলক; User নিজেকে Publisher/Admin করতে পারবে না।
-Review ও Rating নীতি: ১–৫ স্টার রেটিং; নতুন ও সম্পাদিত রিভিউ Pending; কেবল Admin Approve করলে প্রকাশিত ও গড় রেটিংয়ে গণনা।
-Authentication, Lockout ও Admin 2FA: Login ও Registration-এ Cloudflare Turnstile (Backend যাচাই); ৫ বার ভুল Password-এ ১৫ মিনিট D1-নিয়ন্ত্রিত Account Lock (Lock চলাকালীন সঠিক Password-এও Login হবে না, সর্বদা একই সাধারণ Error বার্তা); ১৫ মিনিট Lock শেষ হলে Failed Login Counter শূন্য (0) হবে; প্রথম Admin One-time Secure Bootstrap ও Admin লগইনে বাধ্যতামূলক TOTP 2FA।
-Three-Level Ban System:
-Login Ban: Permanent বা মিনিট/ঘণ্টা/দিন/মাস/বছর ভিত্তিক Temporary + সক্রিয় সেশন বাতিল + Admin Unban।
-Posting Ban: Login ও Public Browsing চালু; নতুন Post, Review, Rating এবং বিদ্যমান Content Edit সম্পূর্ণ বন্ধ; Permanent বা Temporary।
-IP Security Ban: Edge WAF + Workers Rate Limiting API (Approximate/Eventually Consistent Burst Guard) + D1-এ স্থায়ী/Authoritative Ban Records + Admin Manual Block/Unblock + দ্রুত Unblock + Shared IP সুরক্ষা; প্রতিটি Request-এ D1 Counter Write করা হবে না এবং KV প্রধান Rate Limit Counter Store হবে না।
-Admin System Modules ও Audit Logs: ৯টি মডিউল (User Management, Publisher Approval, Post/Revision/Review Approval, Login Ban, Posting Ban, IP Management, Unban Management, ৩০ দিন Retention-সহ Secret-Redacted Security Logs, এবং Application-level Append-only Admin Audit Logs)।
-Core Security Controls: Password Hashing (Workers ১০ms CPU Benchmark সাপেক্ষে), Secure Session (HttpOnly, Secure, SameSite Cookie), CSRF, XSS, SQL Injection সুরক্ষা, Backend Authorization, Input Validation, SSRF, IDOR, Open Redirect প্রতিরোধ ও Security Log Secret Redaction, Session Revocation, Secure Password Reset।
-Architecture, UI ও v1 Media: ১০০% Free-tier, Separated Frontend/Backend/Database, Cloudflare Workers ও D1, History API Clean URLs সহ SPA, Mobile/Desktop Responsive Hybrid Sci-Fi Cinematic Interface, প্রথম সংস্করণে (v1) Hero Video থাকবে না এবং Image/Icon-এ নিরাপদ https:// URL ব্যবহৃত হবে।
-খ. অনুমোদনের ও যাচাইয়ের অপেক্ষায় থাকা সিদ্ধান্তসমূহ (Pending Verification / Approval)
-PBKDF2 Iteration Parameter: Cloudflare Workers Free-এর ১০ms CPU সীমায় বাস্তব Benchmark করে চূড়ান্তকরণ।
-Password Reset Email Provider: বর্তমান Free-tier সীমা ও Domain/Sender Verification শর্ত যাচাই সাপেক্ষে অনুমোদন।
-ক্ষুদ্রতর বাস্তবায়ন সিদ্ধান্ত (OPEN_QUESTIONS.md অংশ ২.খ): Targeted Lockout প্রশমন, Auto Temp IP Block-এর মিনিট ও IPv6 প্রিফিক্স (/128 vs /64), Admin TOTP Secret এনক্রিপশন ও Recovery প্রক্রিয়া, ৩০ দিনের Log Cleanup ট্রিগার পদ্ধতি এবং SPA Public Item পেজের Dynamic Meta/SEO চাহিদা।
-চারটি সংশোধিত ডকুমেন্ট এবং নতুন ENGINEERING_REVIEW.md সম্পূর্ণভাবে তৈরি করা হয়েছে। নির্দেশনা অনুযায়ী কোনো Source Code লেখা হয়নি এবং প্রথম ধাপের ৪টি ডকুমেন্ট (PROJECT_CONTEXT.md, DEVELOPMENT_PLAN.md, README.md, PROJECT_STRUCTURE.md) অপরিবর্তিত রাখা হয়েছে। পরবর্তী নির্দেশনার অপেক্ষায় রইলাম।
+### ক. বাধ্যতামূলক Pre-Implementation Verification Gates
+
+1. **PBKDF2 Deployed Workers Benchmark ও চূড়ান্ত Fallback নির্বাচন (Unresolved until Benchmarked):**
+   - *অবস্থা:* এখনো deployed Cloudflare Workers Free এনভায়রনমেন্টে Benchmark চালানো হয়নি। প্রোডাকশন Workers-এ 10ms CPU সীমা এবং রানটাইম PBKDF2 Iteration Cap বাস্তবে পরীক্ষা করতে হবে।
+   - *প্রশ্ন:* Benchmark ব্যর্থ হলে (নিরাপত্তা দুর্বল না করে 10ms-এ না আঁটলে) প্রস্তাবিত Safe Fallback বিকল্পগুলোর মধ্যে—**(A) Free-tier Managed Auth Provider**, **(B) Passwordless Passkeys/WebAuthn + Email OTP**, নাকি **(C) Isolated Free-tier Auth Service**—কোনটি চূড়ান্তভাবে অনুমোদিত হবে?
+2. **Password Reset Email Provider নির্বাচন (Unresolved until Verified):**
+   - *অবস্থা:* এখনো কোনো Email Provider চূড়ান্ত হয়নি।
+   - *প্রশ্ন:* কোন Free-tier Transactional Email Provider-এর দৈনিক/মাসিক সীমা এবং কাস্টম ডোমেইন DNS Verification শর্ত যাচাই করে অনুমোদন দেওয়া হবে? (যদি প্রজেক্টে শুরুতে কাস্টম ডোমেইন না থাকে তবে `workers.dev`-এ Email Verification কীভাবে কাজ করবে?)
+
+### খ. সংখ্যাত্মক নীতি ও অপারেশনাল অনুমোদন (Pending Numeric / Policy Sign-off)
+
+3. **Backend User Quota ও Content Length-এর সুনির্দিষ্ট সংখ্যা:**
+   - User Quota এবং Content Limit রাখা চূড়ান্ত হয়েছে, কিন্তু **সুনির্দিষ্ট সংখ্যা** এখনো নির্ধারিত হয়নি:
+     - একজন Verified Publisher দিনে সর্বোচ্চ কয়টি নতুন পোস্ট ও পেন্ডিং রিভিশন তৈরি করতে পারবে?
+     - একজন সাধারণ User দিনে সর্বোচ্চ কয়টি নতুন রিভিউ/রিভিশন সাবমিট করতে পারবে?
+     - Post Title, Description, Additional Text এবং Review Comment-এর সর্বোচ্চ অক্ষর সীমা কত হবে?
+4. **CSP `img-src` ও Safe Image Source Policy-র কঠোরতা:**
+   - `img-src` কি যেকোনো বৈধ `https:` ডোমেইন অনুমোদন করবে (Strict `<img>` + `no-referrer` সহ), নাকি কেবল নির্দিষ্ট জনপ্রিয়/বিশ্বস্ত Image Host Allowlist (অথবা Admin-configurable domain allowlist) অনুমোদিত হবে?
+5. **Storage Monitoring (70% / 85% / 95%) Alert ডেলিভারি ও 95% Mode আচরণ:**
+   - 70%, 85%, 95% সতর্কতা কি কেবল Admin Dashboard-এ দেখাবে নাকি Admin ইমেইলেও পাঠানো হবে (Email Provider চূড়ান্ত হওয়া সাপেক্ষে)?
+   - 95% অতিক্রম করলে কোন কোন Write অপারেশন স্বয়ংক্রিয়ভাবে ব্লক হবে (যেমন নতুন Post/Review বন্ধ, কিন্তু Login/Logout/Admin Unban/Ban চালু)?
+6. **Security Log Cleanup ট্রিগার ও Batch Size:**
+   - ৩০ দিনের পুরোনো `security_logs` এবং মেয়াদোত্তীর্ণ `password_resets` পরিষ্কার করতে Cloudflare Workers Free Cron Trigger (১০ms CPU সীমার মধ্যে ছোট `LIMIT` ব্যাচে ডিলিট) ব্যবহার করা হবে নাকি Admin Dashboard থেকে ট্রিগার হবে?
+7. **IP Auto-Temp Block-এর সময়সীমা ও IPv6 গ্রানুলারিটি:**
+   - সন্দেহজনক আচরণে স্বয়ংক্রিয় সাময়িক IP Block-এর মেয়াদ কত মিনিট (যেমন ৫ বা ১৫ মিনিট) এবং IPv6 অ্যাড্রেসে `/128` নাকি `/64` প্রিফিক্স গণনা হবে?
+8. **SPA History API Clean URLs-এ Public Item Dynamic Meta/SEO:**
+   - v1-এ Static SPA `<title>` ও Meta যথেষ্ট কি না, নাকি Worker-এ `/items/:slug` HTML Meta ইনজেকশন প্রয়োজন?
+৫. ENGINEERING_REVIEW.md
+Markdown
+# ReviewHub — Engineering Review & Technical Decisions Record
+
+> **ডকুমেন্টের ধরন:** Consolidated Engineering Review Record  
+> **রিভিউ প্রদানকারী:** Project Engineer (ChatGPT)  
+> **ডকুমেন্টেশন প্রস্তুতকারক:** Senior Technical Documentation Engineer (Gemini)  
+> **অবস্থা:** Documentation Final Review-এর জন্য প্রস্তুত (কোনো Source Code লেখা হয়নি)
+
+---
+
+## ১. রিভিউয়ের সারসংক্ষেপ ও লক্ষ্য
+এই ডকুমেন্টে **Project Engineer (ChatGPT)**-এর দুই দফা Technical Review-এ প্রদত্ত সব Security Corrections, Architectural Constraints এবং **Database Engineering Policy** একত্রিত করা হয়েছে। এর লক্ষ্য হলো Implementation (কোডিং) শুরু হওয়ার আগে ReviewHub-এর Documentation Final Review সম্পন্ন করা।
+
+---
+
+## ২. Architecture ও Security Review সিদ্ধান্তসমূহ (সমন্বিত)
+
+### ২.১ Cloudflare Workers CPU, PBKDF2 Benchmark ও Safe Fallback নীতি
+- Cloudflare Workers Free প্ল্যানে প্রতি ইনভোকেশনে **১০ মিলিসেকেন্ড CPU সময়সীমা** রয়েছে এবং প্রোডাকশন Workers রানটাইমে Web Crypto `PBKDF2`-এর Iteration সীমা থাকতে পারে (যা লোকাল `wrangler dev`-এ ধরা নাও পড়তে পারে)।
+- **সিদ্ধান্ত:** বাস্তব deployed Workers এনভায়রনমেন্টে Benchmark না করে কোনো Iteration অনুমান করা যাবে না। **নিরাপত্তা দুর্বল করে CPU সীমার ভেতর আনার চেষ্টা সম্পূর্ণ নিষিদ্ধ।** Benchmark ব্যর্থ হলে Free-tier Managed Auth, Passwordless Passkeys বা Isolated Free-tier Auth-এর মতো Safe Fallback পরিকল্পনা (Project Engineer-এর অনুমোদনে) গ্রহণ করা হবে।
+
+### ২.২ D1 500MB Shared Database ও Database Engineering Policy
+- **500MB সীমা:** Cloudflare D1 Free টিয়ারে সর্বোচ্চ **500MB per-database** সীমা প্রযোজ্য (সমগ্র ReviewHub অ্যাপের সব ইউজারের জন্য একটি Shared D1 Database; এটি কারো ব্যক্তিগত বরাদ্দ নয়)।
+- **Write-Avoidance ও Rate Limiting:** প্রতিটি Request-এ D1 Counter Write নিষিদ্ধ। KV-কে প্রধান Rate Limit Store করা যাবে না। Workers Rate Limiting API কেবল Approximate ও Eventually Consistent Burst Throttling দেবে; D1 থাকবে মূল Database ও Permanent/Authoritative Ban Record-এর জন্য।
+- **Quota, Content Limits ও No Media Blobs:** Backend-এ User Quota ও Content Length সীমা থাকবে; v1-এ কোনো বড় Image বা Video D1-এ রাখা যাবে না।
+- **Storage Monitoring:** **70%, 85% এবং 95%** স্টোরেজ ব্যবহারে সতর্কতা ও প্রতিরোধমূলক পদক্ষেপ থাকবে।
+- **Index, Optimization ও Pagination:** `SELECT *` পরিহার, সম্পূর্ণ SQL Indexing এবং Paginated Query বাধ্যতামূলক।
+- **Safe Retention & Cleanup:** Security Logs-এর প্রাথমিক Retention **৩০ দিন**। Expired লগ পরিষ্কারের সময় Password, Hash, Session, Active Ban, Bootstrap State ও Audit Logs কখনো অসতর্কভাবে মুছে ফেলা যাবে না।
+
+### ২.৩ Duplicate Review প্রতিরোধ ও Dual Revision ওয়ার্কফ্লো
+- **`UNIQUE(item_id, user_id)`:** Database-এ একই User যেন একই App/Website-এ একাধিক Review দিতে না পারে সেজন্য Unique Constraint যুক্ত করা হয়েছে।
+- **Post ও Review উভয়ের জন্য Safe Revision Workflow:**
+  - Publisher-এর `Approved` Post Edit করলে অথবা User-এর `Approved` Review Edit করলে একটি নতুন **`Pending` Revision** তৈরি হবে।
+  - Admin নতুন Revision Approve না করা পর্যন্ত **পুরোনো `Approved` Post বা `Approved` Review Public থাকবে** (এবং গড় রেটিং স্থিতিশীল থাকবে)।
+
+### ২.৪ Authentication, Lockout Abuse Prevention ও Atomic Admin Security
+- **Lockout ও Abuse Prevention:** ৫ বার ভুল Password-এ ১৫ মিনিট D1-নিয়ন্ত্রিত Account Lock, Lock-এ সঠিক পাসওয়ার্ডেও ব্যর্থতা, একই সাধারণ Error বার্তা, ১৫ মিনিট পর Counter `0`-এ রিসেট। Targeted Lockout DoS ঠেকাতে Turnstile + Pre-Lockout Rate Limiting + IP-level Abuse Detection যুক্ত হয়েছে।
+- **Atomic One-time Admin Bootstrap:** D1-এ Atomic শর্তসাপেক্ষ অপারেশনে প্রথম Admin তৈরি হবে এবং একবার সম্পন্ন হলে স্থায়ীভাবে পুনর্ব্যবহার অযোগ্য হবে।
+- **Admin TOTP 2FA (Encrypted + Recovery Codes):** Admin লগইনে TOTP 2FA বাধ্যতামূলক। TOTP Secret Worker Secret (`TOTP_ENCRYPTION_KEY`) দিয়ে **AES-256-GCM এনক্রিপ্টেড** থাকবে এবং এককালীন ব্যবহারযোগ্য হ্যাশকৃত **Recovery Codes** থাকবে।
+
+### ২.৫ URL, Image, Log ও Application Security Controls
+- **Image/Icon Safe Policy (v1):** Hero Video v1-এ থাকবে না; Image/Icon-এ কেবল `https://` URL + কঠোর **CSP (`img-src`)**, **Referrer Privacy (`no-referrer`)**, ও নিরাপদ `<img>` রেন্ডারিং নীতি প্রযোজ্য হবে।
+- **SSRF, IDOR, Open Redirect ও Secret Redaction:** চারটি সুরক্ষা স্তর বাধ্যতামূলকভাবে সংযোজিত হয়েছে; `security_logs` ও `admin_audit_logs`-এ কোনো Secret বা Credential সংরক্ষিত হবে না।
+- **Audit Logs:** **Application-level Append-only** হিসেবে সংজ্ঞায়িত (Storage-level সম্পূর্ণ Immutable দাবি করা হয়নি)।
+- **Posting Ban & SPA:** Posting Ban নতুন Post, Review, Rating ও বিদ্যমান Content Edit বন্ধ করবে (Login ও Public Browsing চালু থাকবে)। SPA-তে **History API Clean URLs** ব্যবহৃত হবে।
+
+---
+
+## ৩. Documentation Final Review Readiness Matrix
+
+| ডকুমেন্ট | হালনাগাদের পরিধি | অবস্থা |
+| :--- | :--- | :--- |
+| `PROJECT_REQUIREMENTS.md` | 500MB Shared D1, `UNIQUE(item_id, user_id)`, Review Revision, Atomic Bootstrap, TOTP + Recovery, Lockout Abuse Prevention, User Quota, Storage Monitoring | Final Review Ready |
+| `SECURITY_DOCUMENTATION.md` | PBKDF2 Fallback Plan, AES-256-GCM TOTP & Hashed Recovery Codes, Image CSP/Referrer/Source Policy, Lockout Abuse Prevention, SSRF/IDOR/Open Redirect/Redaction, Safe Cleanup | Final Review Ready |
+| `SYSTEM_ARCHITECTURE.md` | Database Engineering Policy (9টি নিয়ম), 500MB Monitoring (70/85/95%), `reviews` + `review_revisions` ও `items` + `item_revisions` মডেল, `system_bootstrap`, `admin_recovery_codes` | Final Review Ready |
+| `OPEN_QUESTIONS.md` | নিষ্পত্তিকৃত সিদ্ধান্ত ও অসম্পূর্ণ/যাচাই-সাপেক্ষ সিদ্ধান্তের স্বচ্ছ বিভাজন (কোনো অসম্পূর্ণ বিষয় Confirmed দেখানো হয়নি) | Final Review Ready |
+| `ENGINEERING_REVIEW.md` | দুই দফা Technical Review ও Database Policy-র পূর্ণাঙ্গ রেকর্ড | Final Review Ready |
+৬. Documentation Final Review সারাংশ (Confirmed বনাম Pending)
+ক. চূড়ান্তকৃত সিদ্ধান্তসমূহ (Confirmed Decisions)
+Guest Access, Verified Publisher System (১০ নিয়ম) ও Review নিয়ম (অপরিবর্তিত) + UNIQUE(item_id, user_id) + Approved Post ও Approved Review উভয়ের Edit-এ নতুন Pending Revision তৈরি ও পুরোনোটি Public থাকা।
+Auth & Security: Turnstile CAPTCHA, ৫-ভুলে ১৫ মিনিট Lockout, একই সাধারণ Error, ১৫ মিনিট পর Counter 0, Lockout Abuse Prevention, Atomic One-time Admin Bootstrap, Admin TOTP 2FA (AES-256-GCM Encrypted Secret + Hashed Recovery Codes), SSRF/IDOR/Open Redirect/Secret Redaction, এবং Image URL-এ HTTPS + CSP + Referrer Privacy + Safe Source Policy।
+Three-Level Ban System: Login Ban (Temp/Perm + 5 time units + Unban), Posting Ban (নতুন Post/Review/Rating ও Content Edit বন্ধ, Login/Read চালু), IP Security Ban (Edge WAF + Approximate Workers Rate Limiting + D1 Authoritative Bans + Shared IP সুরক্ষা)।
+Database Engineering Policy: 500MB per-database Shared D1 সীমা, প্রতি Request-এ D1 Counter Write নিষিদ্ধ, KV Rate Limit Store নিষিদ্ধ, Backend User Quota ও Content Limits, 70%/85%/95% Storage Monitoring, ৩০ দিন Security Logs Retention, Password/Session/Security Data নিরাপদ সুরক্ষা, v1-এ DB-তে বড় Image/Video নিষিদ্ধ, Index + Query Optimization + Pagination।
+Architecture & UI: ১০০% Free-tier, Separated Frontend/Backend/Database, History API Clean URLs SPA, Mobile/Desktop Responsive Hybrid Sci-Fi Cinematic Interface, v1-এ Hero Video নেই, Application-level Append-only Audit Logs।
+খ. এখনো অনুমোদন ও যাচাইয়ের অপেক্ষায় থাকা বিষয়সমূহ (Pending / Incomplete — Confirmed হিসেবে দেখানো হয়নি)
+PBKDF2 Deployed Workers Benchmark ও Safe Fallback নির্বাচন (Benchmark না হওয়া পর্যন্ত)।
+Password Reset Email Provider (Free-tier ও Domain Verification শর্ত যাচাই না হওয়া পর্যন্ত)।
+User Quota, Content Length Caps, Image img-src Scope (Open HTTPS vs Allowlist), 95% Storage Mode/Alert Delivery, Log Cleanup Trigger ও Auto-IP Block সময়সীমা/IPv6 গ্রানুলারিটি (OPEN_QUESTIONS.md অংশ ২.খ)।
+পাঁচটি সম্পূর্ণ Markdown ডকুমেন্ট GitHub Repository-তে আপডেট করার জন্য প্রস্তুত। নির্দেশনা অনুযায়ী কোনো Source Code লেখা হয়নি এবং কোনো Deployment করা হয়নি। পরবর্তী Documentation Final Review ফলাফল ও নির্দেশনার অপেক্ষায় রইলাম।
+1m47.2s
+
