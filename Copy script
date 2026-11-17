@@ -185,3 +185,7 @@ Accessibility	Keyboard Tab Focus Ring (Cyan), ARIA Labels, Reduced Motion Suppor
 পূর্বের Technical Review ও Confirmed Decisions সম্পূর্ণভাবে অক্ষুণ্ণ রাখা হয়েছে (v1-এ Hero Video নেই, History API Clean URLs SPA, UNIQUE(item_id, user_id)-ভিত্তিক Edit-to-Pending-Revision UX, 500MB Storage 70/85/95% Monitoring, TOTP + Recovery Codes, Posting Ban UI আচরণ, Pagination)।
 এই UI/UX Design System ও Layout পরিকল্পনা আপনার এবং Project Engineer (ChatGPT)-এর অনুমোদনের জন্য উপস্থাপন করা হলো। অনুমোদন পেলে এবং Pre-Implementation Gate (PBKDF2 Benchmark ও Email Provider শর্ত)-এর নির্দেশনা পেলে আমরা পরবর্তী ধাপে এগোতে পারব।
 1m14.9s
+Google AI models may make mistakes, so double-check outputs.
+Use Arrow Up and Arrow Down to select a turn, Enter to jump to it, and Escape to return to the chat.
+Start typing a prompt
+
