@@ -49,7 +49,8 @@ export function TopRatedSection({ items, onSelectItem }: TopRatedSectionProps) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  style={{ minHeight: '40px', padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
+                  aria-label={`${item.name} প্রিভিউ দেখুন`}
+                  style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
                   onClick={() => onSelectItem(item)}
                 >
                   Inspect
