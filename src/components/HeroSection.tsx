@@ -87,6 +87,7 @@ export function HeroSection({
             <div className="hero-filter-row" role="group" aria-label="Filter by Platform Type">
               <button
                 type="button"
+                aria-pressed={typeFilter === 'all'}
                 className={`filter-pill ${typeFilter === 'all' ? 'filter-pill--active' : ''}`}
                 onClick={() => onTypeFilterChange('all')}
               >
@@ -94,6 +95,7 @@ export function HeroSection({
               </button>
               <button
                 type="button"
+                aria-pressed={typeFilter === 'app'}
                 className={`filter-pill ${typeFilter === 'app' ? 'filter-pill--active' : ''}`}
                 onClick={() => onTypeFilterChange('app')}
               >
@@ -101,6 +103,7 @@ export function HeroSection({
               </button>
               <button
                 type="button"
+                aria-pressed={typeFilter === 'website'}
                 className={`filter-pill ${typeFilter === 'website' ? 'filter-pill--active' : ''}`}
                 onClick={() => onTypeFilterChange('website')}
               >
