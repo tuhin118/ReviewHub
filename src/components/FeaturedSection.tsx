@@ -31,7 +31,7 @@ export function FeaturedSection({
               Featured Apps &amp; Websites
             </h2>
           </div>
-          <p className="section-desc">
+          <p className="section-desc" aria-live="polite" aria-atomic="true">
             {items.length} টি ফলাফল প্রদর্শিত হচ্ছে (Static Demo Catalog)
           </p>
         </div>
