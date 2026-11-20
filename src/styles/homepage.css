@@ -968,7 +968,13 @@
   margin-top: 2rem;
   border-top: 1px solid var(--border-subtle);
   background: rgba(4, 8, 6, 0.92);
-  padding: 2rem 0 1.5rem;
+  padding: 2rem 0 5.5rem;
+}
+
+@media (min-width: 1024px) {
+  .site-footer {
+    padding-bottom: 1.5rem;
+  }
 }
 
 .footer-grid {
