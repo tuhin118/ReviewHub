@@ -45,16 +45,16 @@ export function CategoriesSection({
                 className={`glass-panel category-card ${isActive ? 'category-card--active' : ''}`}
                 onClick={() => onSelectCategory(isActive ? null : category.id)}
               >
-                <div className="category-card__head">
+                <span className="category-card__head">
                   <span className="category-card__code">{category.code}</span>
                   <span className="cyber-badge">{isActive ? 'ACTIVE' : 'FILTER'}</span>
-                </div>
+                </span>
                 <span className="category-card__title">{category.name}</span>
                 <span className="category-card__desc">{category.description}</span>
-                <div className="category-card__counts">
+                <span className="category-card__counts">
                   <span>{category.appCount} Demo Apps</span>
                   <span>{category.websiteCount} Demo Websites</span>
-                </div>
+                </span>
               </button>
             );
           })}
