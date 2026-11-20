@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface NavbarProps {
   onGuestAuthNotice: (actionLabel: string) => void;
@@ -7,16 +7,85 @@ interface NavbarProps {
 
 export function Navbar({ onGuestAuthNotice, onFocusSearch }: NavbarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const firstNavLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const wasDrawerOpenRef = useRef(false);
 
   useEffect(() => {
+    if (!drawerOpen) {
+      if (wasDrawerOpenRef.current) {
+        wasDrawerOpenRef.current = false;
+        menuButtonRef.current?.focus();
+      }
+      return;
+    }
+
+    wasDrawerOpenRef.current = true;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const focusTimer = window.requestAnimationFrame(() => {
+      firstNavLinkRef.current?.focus();
+    });
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
         setDrawerOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const drawerElement = drawerRef.current;
+      if (!drawerElement) {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        drawerElement.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (!activeElement || !drawerElement.contains(activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? lastElement : firstElement).focus();
+        return;
+      }
+
+      if (event.shiftKey) {
+        if (activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else if (activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+
+    return () => {
+      window.cancelAnimationFrame(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [drawerOpen]);
 
   const closeAndNavigate = () => {
     setDrawerOpen(false);
@@ -80,10 +149,12 @@ export function Navbar({ onGuestAuthNotice, onFocusSearch }: NavbarProps) {
             </div>
 
             <button
+              ref={menuButtonRef}
               type="button"
               className="menu-toggle"
-              aria-label="Open Navigation Menu"
+              aria-label={drawerOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
               aria-expanded={drawerOpen}
+              aria-controls={drawerOpen ? 'mobile-navigation-drawer' : undefined}
               onClick={() => setDrawerOpen(true)}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -102,7 +173,12 @@ export function Navbar({ onGuestAuthNotice, onFocusSearch }: NavbarProps) {
           aria-label="Mobile Navigation Menu"
           onClick={() => setDrawerOpen(false)}
         >
-          <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
+          <div
+            id="mobile-navigation-drawer"
+            ref={drawerRef}
+            className="mobile-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mobile-drawer__head">
               <span className="brand-name">
                 Review<span>Hub</span>
@@ -118,7 +194,12 @@ export function Navbar({ onGuestAuthNotice, onFocusSearch }: NavbarProps) {
             </div>
 
             <div className="mobile-drawer__nav">
-              <a href="#top" className="mobile-drawer__link" onClick={closeAndNavigate}>
+              <a
+                ref={firstNavLinkRef}
+                href="#top"
+                className="mobile-drawer__link"
+                onClick={closeAndNavigate}
+              >
                 Home &amp; Search
               </a>
               <a href="#trending" className="mobile-drawer__link" onClick={closeAndNavigate}>
