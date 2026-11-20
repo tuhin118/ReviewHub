@@ -47,7 +47,8 @@ export function ItemPreviewModal({ item, onClose }: ItemPreviewModalProps) {
                 {item.verifiedPublisher && (
                   <span className="verified-dot">✓ Demo Verified Publisher</span>
                 )}
-                <span>• {item.publisherName} • {item.officialDomain}</span>
+                <span>• {item.publisherName}</span>
+                <span>• Demo Domain (Not a Real Website): {item.officialDomain}</span>
               </span>
             </div>
           </div>
