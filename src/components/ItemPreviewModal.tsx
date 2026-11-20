@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { CatalogItem } from '../types/catalog';
 import { ItemIcon } from './ItemIcon';
 
@@ -8,16 +8,98 @@ interface ItemPreviewModalProps {
 }
 
 export function ItemPreviewModal({ item, onClose }: ItemPreviewModalProps) {
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  const isOpen = item !== null;
+
   useEffect(() => {
-    if (!item) return;
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previousFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const getFocusableElements = (): HTMLElement[] => {
+      const modalElement = modalRef.current;
+      if (!modalElement) return [];
+
+      return Array.from(
+        modalElement.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+    };
+
+    const focusTimer = window.requestAnimationFrame(() => {
+      const focusableElements = getFocusableElements();
+      focusableElements[0]?.focus();
+    });
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const modalElement = modalRef.current;
+      if (!modalElement) {
+        return;
+      }
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (!activeElement || !modalElement.contains(activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? lastElement : firstElement).focus();
+        return;
+      }
+
+      if (event.shiftKey) {
+        if (activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else if (activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [item, onClose]);
+
+    return () => {
+      window.cancelAnimationFrame(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+
+      const elementToRestore = previousFocusedElementRef.current;
+      previousFocusedElementRef.current = null;
+      if (elementToRestore && elementToRestore.isConnected) {
+        elementToRestore.focus();
+      }
+    };
+  }, [isOpen]);
 
   if (!item) return null;
 
@@ -29,7 +111,11 @@ export function ItemPreviewModal({ item, onClose }: ItemPreviewModalProps) {
       aria-labelledby="modal-item-title"
       onClick={onClose}
     >
-      <div className="glass-panel glass-panel--elevated modal-card" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className="glass-panel glass-panel--elevated modal-card"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-head">
           <div className="item-card__header">
             <ItemIcon glyph={item.iconGlyph} />
