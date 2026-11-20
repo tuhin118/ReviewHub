@@ -45,7 +45,8 @@ export function TrendingSection({ items, onSelectItem }: TrendingSectionProps) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  style={{ minHeight: '38px', padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}
+                  aria-label={`${item.name} প্রিভিউ দেখুন`}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}
                   onClick={() => onSelectItem(item)}
                 >
                   Inspect
