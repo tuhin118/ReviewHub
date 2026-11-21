@@ -45,7 +45,7 @@
 
 .main-content {
   flex: 1;
-  padding-bottom: 5.5rem;
+  padding-bottom: 1.25rem;
 }
 
 @media (min-width: 1024px) {
@@ -334,8 +334,9 @@
 }
 
 .icon-btn-sm {
-  min-width: 36px;
-  min-height: 36px;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
   background: transparent;
@@ -941,6 +942,21 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.modal-head > .item-card__header {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-head > .item-card__header > div:last-child {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.modal-head > .icon-btn-sm {
+  flex-shrink: 0;
 }
 
 .review-preview-list {
