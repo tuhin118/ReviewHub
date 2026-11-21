@@ -451,9 +451,9 @@
 
 .search-clear {
   position: absolute;
-  right: 0.5rem;
-  min-width: 36px;
-  min-height: 36px;
+  right: 0.25rem;
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.06);
@@ -470,7 +470,7 @@
 }
 
 .filter-pill {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border-subtle);
