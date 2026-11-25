@@ -56,8 +56,18 @@ API Secrets অবশ্যই Backend-এর Environment Secrets-এ থাক�
 - Database Query Optimize করতে হবে।
 - Build Memory ও Runtime Memory বিবেচনায় রাখতে হবে।
 - Free Quota শেষ হলে Graceful Error দেখাতে হবে।
+- Paid Service প্রয়োজন হলে আগে User-এর অনুমতি নিতে হবে।
 
 Unlimited Free Usage-এর প্রতিশ্রুতি দেওয়া যাবে না।
+
+Build Memory Optimization:
+
+- অপ্রয়োজনীয় Dependencies যোগ করা যাবে না।
+- Duplicate Code এড়িয়ে চলতে হবে।
+- Modular Architecture বজায় রাখতে হবে।
+- প্রয়োজন অনুযায়ী Lazy Loading ব্যবহার করতে হবে।
+- অপ্রয়োজনীয় বড় Asset ও Animation এড়িয়ে চলতে হবে।
+- Build Environment-এর Memory Limit বিবেচনায় রাখতে হবে।
 
 4. Design System — LOCKED
 
@@ -76,7 +86,31 @@ Typography, Buttons, Cards, Icons, Spacing এবং Responsive Layout-এর �
 
 Homepage-এর বর্তমান Design পরিবর্তন না করে Functionality যুক্ত করতে হবে।
 
-4.1 Login & Register Design
+Typography প্রয়োজন অনুযায়ী বর্তমানের তুলনায় আনুমানিক ৫–৮% ছোট করা যেতে পারে, তবে Readability ও Accessibility বজায় রাখতে হবে।
+
+4.1 Critical Design Ownership — Login & Register
+
+Design Owner: ChatGPT
+
+Login ও Register-এর Final UI/UX Design, Visual Direction এবং প্রয়োজনীয় Design Assets ChatGPT তৈরি ও নির্ধারণ করবে।
+
+Gemini-এর দায়িত্ব শুধুমাত্র ChatGPT-এর দেওয়া Final Design Specification অনুযায়ী Code Implementation করা।
+
+Gemini নিজে থেকে Login/Register Design তৈরি, পরিবর্তন, Simplify বা Replace করতে পারবে না।
+
+বিশেষ নিয়ম:
+
+1. ChatGPT-এর অনুমোদিত Design ছাড়া বিকল্প Login/Register Design তৈরি করা যাবে না।
+2. অন্য কোনো ফাইলে Duplicate Login/Register System তৈরি করা যাবে না।
+3. আলাদা Alternative Authentication UI তৈরি করা যাবে না।
+4. Existing Project Structure যাচাই করে সঠিক জায়গায় Integration করতে হবে।
+5. Final Design Assets বা Specification না পাওয়া পর্যন্ত Design Implementation শুরু করা যাবে না।
+6. Design এবং Authentication Logic আলাদা Component-এ রাখা যেতে পারে, তবে UI অপরিবর্তিত রাখতে হবে।
+7. কোনো Technical Conflict হলে নিজে থেকে Design পরিবর্তন না করে ChatGPT-এর Review চাইতে হবে।
+
+Gemini must implement the approved design, not invent a replacement.
+
+4.2 Login & Register Visual Concept
 
 নির্ধারিত Design: Full-screen Futuristic Cyber Login.
 
@@ -88,6 +122,7 @@ Visual Concept:
 - Cyan / Teal / Green Lighting
 - Digital Particles
 - HUD Details
+- Premium Dark Environment
 
 Login Features:
 
@@ -111,6 +146,17 @@ Login ও Register-এর জন্য একই Custom Robotic Digital Sound Ef
 
 Browser Autoplay Policy মানতে হবে। Phone-এর System Volume জোর করে পরিবর্তন করা যাবে না।
 
+Sound On / Off Control থাকবে। Sound চালানোর আগে Browser-এর User Interaction প্রয়োজন হলে তা অনুসরণ করতে হবে।
+
+Login ও Register-এর Background Visual Effects:
+
+- Circuit Animation / Flowing Light
+- Floating App Icons
+- HUD Scanning
+- Digital Particles
+
+Effects Medium Intensity-তে রাখার পরিকল্পনা থাকবে, তবে Performance ও Accessibility বিবেচনায় Final Design-এ নির্ধারণ করতে হবে।
+
 5. Homepage & Public Website
 
 Homepage:
@@ -123,7 +169,11 @@ Homepage:
 - Categories
 - Footer
 
-Homepage-এর Demo Data বর্তমানে শুধু Preview-এর জন্য। Backend Integration সম্পন্ন হলে বাস্তব Database Data ব্যবহার করতে হবে।
+Homepage-এর Demo Data সম্পূর্ণ Website Development শেষ হওয়া পর্যন্ত থাকবে।
+
+Demo Data শুধু Development Preview-এর জন্য। Backend Integration ও Final Data Migration সম্পন্ন হলে বাস্তব Database Data ব্যবহার করতে হবে।
+
+Demo Data-কে কখনো Real User Data, Real Review বা Verified Rating হিসেবে উপস্থাপন করা যাবে না।
 
 5.1 Search System
 
@@ -207,6 +257,12 @@ Admin:
 
 Registration করলেই Publisher Permission পাওয়া যাবে না। Admin অনুমোদন প্রয়োজন।
 
+General Users App বা Website Listing তৈরি করতে পারবে না।
+
+Publisher শুধু নিজের Listing পরিচালনা করতে পারবে।
+
+Admin Publisher Permission বাতিল করতে পারবে। Backend-এ Permission যাচাই বাধ্যতামূলক।
+
 7. User Profile & Dashboard
 
 User Profile:
@@ -240,6 +296,14 @@ User Dashboard:
 - Notifications
 - Account Activity
 
+Account Settings:
+
+- Edit Profile
+- Change Email (Verification Required)
+- Change Password
+- Logout
+- Delete Account
+
 8. Review & Rating System
 
 Review Submission:
@@ -254,6 +318,8 @@ Review Submission:
 Review Admin Approval না পাওয়া পর্যন্ত Public হবে না।
 
 একজন User একটি Listing-এ একটি Review রাখতে পারবে। Edit করলে Pending Revision হবে।
+
+Approved Review-এর Edit Request Pending Revision হিসেবে থাকবে। Admin Approve না করা পর্যন্ত পুরোনো Approved Review Public থাকবে।
 
 8.1 Public Review Display
 
@@ -401,6 +467,8 @@ Combination:
 - Premium Cyber Hacker Dashboard
 - Robotic Operating System Style UI
 
+Robotic Operating System Style বলতে System-Control Interface Design বোঝাবে; কোনো Robot Character বা Robot Image বাধ্যতামূলক নয়।
+
 Navigation:
 
 - Sidebar
@@ -447,9 +515,239 @@ Color Palette আগের Design অনুযায়ী Black, Cyan, Teal ও Su
 21. Admin Profile & Personalization
 22. Email Domain Management
 
-এই Module-গুলোর বিস্তারিত Feature Specification পরবর্তী Implementation Phase অনুযায়ী ভাগ করতে হবে।
+13.2 Admin Module Feature Requirements
 
-প্রথম Version-এ প্রয়োজনীয় Core Admin Functionality আগে বাস্তবায়ন হবে। Advanced Modules Future Phase-এ যাবে।
+User Management — Ultimate User Intelligence Center
+
+- User Details
+- Account Edit
+- Disable / Enable
+- Role Management
+- Publisher Permission
+- Session Revoke
+- Warning
+- Temporary / Permanent Ban
+- Posting Restriction
+- User History
+- Activity Analysis
+- Support History
+- XELVOR Recommendations
+
+Publisher Management — Ultimate Publisher Intelligence Center
+
+- Publisher List / Profile
+- Verification
+- Approval / Rejection
+- Publisher Permission Control
+- Listings / Performance Analytics
+- Activity History
+- XELVOR Analysis
+
+Apps Management — Ultimate App Intelligence Center
+
+- App Listing Management
+- Submission & Approval
+- Revision Review
+- Publisher Control
+- App Analytics
+- Security Checks
+- Activity History
+- XELVOR Analysis
+
+Website Management — Ultimate Website Intelligence Center
+
+- Website Listing Management
+- Submission & Approval
+- Revision Review
+- Publisher Control
+- Website Analytics
+- Security Checks
+- Activity History
+- XELVOR AI Analysis
+
+Reviews Management — Ultimate Review Intelligence Center
+
+- Review List & Advanced Filters
+- Approval / Rejection
+- Pending Review & Revision Management
+- User History & Review Tracking
+- Publisher Tracking
+- Review Analytics & Reports
+- Suspicious Review Detection
+- Security Analysis
+- XELVOR AI Recommendations
+
+Ratings Management — Ultimate Rating Intelligence Center
+
+- Rating List & Management
+- Rating Verification
+- Suspicious Rating Detection
+- Average Rating & Distribution Analytics
+- Rating Trends & Item Comparison
+- User Tracking
+- Rating Security Analysis
+- XELVOR AI Recommendations
+
+শুধু Approved Review-এর Rating Public Average-এ গণনা হবে।
+
+Approval Center — Ultimate Approval Intelligence Center
+
+- App, Website, Review & Revision Approval
+- Advanced Workflow
+- Publisher Verification
+- Priority & Pending Queue Management
+- Approval Analytics & Reports
+- Security Checks
+- Admin Activity History
+- XELVOR AI Recommendations
+
+Ban Management — Ultimate Ban Intelligence Center
+
+- Temporary & Permanent Ban
+- Login Ban & Posting Ban
+- IP Security Ban
+- Warning & Restriction Management
+- User Intelligence & Suspicious Activity Monitoring
+- Ban Appeals
+- Ban History & Audit Logs
+- Ban Analytics
+- XELVOR AI Recommendations
+
+Security Center — Ultimate Security Intelligence Center
+
+- Security Dashboard & Live Alerts
+- Login & Session Protection
+- Rate Limiting & API Security
+- Suspicious Activity Detection
+- Threat Intelligence & Risk Scoring
+- Security Audit & Incident Management
+- System Health Monitoring
+- XELVOR AI Security Analysis
+
+Reports & Analytics — Intelligence Analytics Center
+
+- Trend Analysis
+- User Behavior Analytics
+- Security Reports
+- Website Performance Insights
+- Growth Analysis
+- Data Visualization
+- Predictive Insights
+- XELVOR Trend Analysis
+
+Audit Logs — Ultimate Audit Intelligence Center
+
+- Admin / User / Publisher Activity Logs
+- Login & Session History
+- Security Event Timeline
+- IP & Suspicious Activity History
+- Incident Investigation
+- Tamper-resistant Audit Records
+- Export Reports
+- XELVOR AI Analysis
+
+Ordinary Admin Audit Logs গোপনে Edit বা Delete করতে পারবে না।
+
+Admin Settings & Permissions
+
+- Website Configuration
+- API Configuration
+- Database Settings
+- System Controls
+- Security Configuration
+- XELVOR AI Control Panel
+- XELVOR AI Configuration & Monitoring
+- AI Permission Management
+- AI Usage & Activity Logs
+
+Support Center
+
+- Advanced Ticket Management
+- Priority & Category
+- Assignment
+- User History & Ticket Tracking
+- Complete Ticket History
+- NEXORA AI Escalations
+- XELVOR Analysis & Recommendations
+- Support Analytics
+
+Content & Category Management
+
+- Main Category / Subcategory Management
+- Custom Icons / Descriptions
+- Sorting
+- Active / Inactive
+- Content Analytics
+- Trending Categories
+- Category Performance
+- XELVOR Recommendations
+
+Notification Center
+
+- Create / Send / Edit / Delete Notifications
+- AI Message Drafting
+- Title / Description Suggestions
+- Admin Preview / Edit / Approval
+
+XELVOR AI নিজে থেকে Notification পাঠাতে পারবে না।
+
+System Maintenance Center
+
+- Maintenance Mode
+- System Status
+- Database Status
+- Backup Status
+- Service Health Monitor
+
+Database Backup & Recovery
+
+- Manual Backup
+- Backup History
+- Backup Status
+- Restore
+- Integrity Check
+- XELVOR Backup Monitoring / Alerts
+
+Restore-এর আগে Admin Confirmation বাধ্যতামূলক।
+
+Advanced Role & Permission Management
+
+- Role Management
+- Custom Role Creation
+- Permission Assignment
+- Module-wise Access Control
+- Admin / Publisher Permissions
+- User Access Restrictions
+- Permission History
+- XELVOR Access Analysis
+
+Global Search & Command Center
+
+- Search User
+- Publisher
+- App
+- Website
+- Review
+- Support Ticket
+- Audit Logs
+- Natural Language XELVOR Command Interface
+
+Admin Profile & Personalization
+
+- Profile
+- Picture
+- Display Name
+- Password / Security Settings
+- Dashboard Personalization
+- Own Account Activity / Login History
+
+Email Domain Management
+
+- Allowed Domain Management
+- Add / Remove Domain
+- Activate / Deactivate Domain
+- Disposable Email Block
+- Backend Validation
 
 Advertisement Management এবং Feedback & Feature Request Center বর্তমানে Scope-এর বাইরে।
 
@@ -516,7 +814,83 @@ NEXORA AI Theme:
 - শুধু Free AI Service / Free Quota ব্যবহার করা যাবে।
 - Quota শেষ হলে Graceful Message ও Support Option দিতে হবে।
 
-Advanced AI Features প্রথম Version-এ প্রয়োজন অনুযায়ী সীমিত রাখা হবে।
+AI API Provider এখনো Final Selection নয়। Free Tier, Privacy, Rate Limit এবং Terms যাচাই করে নির্বাচন করতে হবে।
+
+14.4 XELVOR Security Intelligence
+
+XELVOR AI বাস্তব Security Event থেকে বিশ্লেষণ করবে:
+
+- Authentication Bypass Indicators
+- Rate Limit Violations
+- Access Control Violations
+- API Abuse
+- Database Security Anomalies
+- Session Anomalies
+
+Alert-এর মধ্যে থাকতে পারে:
+
+- Timestamp
+- Relevant Account / Session Reference
+- Risk Level
+- Reason
+- Supporting Evidence
+- Recommendation
+
+AI অনুমানকে কখনো Confirmed Attack হিসেবে দেখাতে পারবে না।
+
+14.5 XELVOR IP Management
+
+Admin Natural Language Command দিয়ে IP Security Management করতে পারবে।
+
+উদাহরণ:
+
+- কোনো Suspicious Activity আছে কি না পরীক্ষা করা।
+- কোনো নির্দিষ্ট IP সাময়িকভাবে Block করা।
+- Blocked IP List দেখা।
+- নির্দিষ্ট IP Unblock করা।
+- Block History দেখা।
+
+এই Action-এর জন্য:
+
+- Backend Admin Permission যাচাই করবে।
+- Sensitive Action-এর আগে Step-up Authentication প্রয়োজন হবে।
+- Admin Confirmation নিতে হবে।
+- সব Action Audit Log-এ থাকবে।
+- Temporary Block-এর Expiry থাকবে।
+- ভুল IP Block হলে Admin Override / Unblock করতে পারবে।
+
+শুধু ২–৩টি Request হওয়ার কারণে স্বয়ংক্রিয় IP Block করা যাবে না। একাধিক Security Signal ও Risk Assessment বিবেচনা করতে হবে।
+
+Shared IP ও Mobile Network-এর কারণে False Positive হতে পারে। তাই IP Block-এর সিদ্ধান্তে সতর্কতা প্রয়োজন।
+
+14.6 XELVOR AI Auto Bug Detection & Repair
+
+Future Advanced Feature — Confirmed
+
+নির্ধারিত System: Hybrid AI Repair.
+
+XELVOR AI:
+
+- Error Logs Monitor করবে।
+- API Failure Detect করবে।
+- Database Error Analyse করবে।
+- Bug Classify করবে।
+- Severity নির্ধারণ করবে।
+- Repair Recommendation তৈরি করবে।
+
+Repair Policy:
+
+1. ছোট ও Pre-approved Safe Bug-এর জন্য সীমিত Automated Repair Workflow ব্যবহার করা যেতে পারে।
+2. বড় Code Change-এর জন্য Admin Approval প্রয়োজন।
+3. Production Code-এ AI-এর Unrestricted Write Access থাকবে না।
+4. Repair-এর আগে Backup / Rollback Point তৈরি করতে হবে।
+5. Repair-এর পরে Automated Tests চালাতে হবে।
+6. Test Failure হলে Rollback করতে হবে।
+7. প্রতিটি Repair-এর Report ও Audit Record থাকবে।
+
+AI নিজে থেকে Production Code বা Database নির্বিচারে পরিবর্তন করতে পারবে না।
+
+এটি প্রথম Version-এর বাধ্যতামূলক Feature নয়; Future Roadmap-এ থাকবে।
 
 15. Security Requirements
 
@@ -546,6 +920,8 @@ Lock চলাকালে সঠিক Password দিলেও Login হবে
 
 Generic Error Response ব্যবহার করতে হবে।
 
+Lock Enforcement Backend-এ হতে হবে। Abuse Prevention-এর জন্য Account ও Request Context অনুযায়ী Rate Limiting বিবেচনা করতে হবে।
+
 15.2 Email Domain Rules
 
 বর্তমানে Registration-এর জন্য অনুমোদিত Domain:
@@ -574,8 +950,7 @@ Admin ভবিষ্যতে Email Domain Management থেকে Domain Add, 
 - Permission Change ও Security Actions Audit Log-এ থাকবে।
 - Admin Password বা User Password দেখা যাবে না।
 - Admin Password Reset Initiate করতে পারবে; নতুন Password User নিজে সেট করবে।
-
-Password Hash সাধারণ Admin UI-তে প্রকাশ করা হবে না।
+- Password Hash সাধারণ Admin UI-তে প্রকাশ করা হবে না।
 
 16. Privacy & User Intelligence
 
@@ -600,6 +975,8 @@ Covert CPU / Canvas Fingerprinting ব্যবহার করা যাবে 
 
 Repeat Visits একটি Summary Record-এ দেখানো হবে; বিস্তারিত History আলাদাভাবে দেখা যাবে।
 
+Guest ID একই Browser-এর Storage বজায় থাকলে পুনরায় ব্যবহার করা যাবে। Browser Data Clear, Incognito বা অন্য Device-এ একই Guest শনাক্ত হবে—এমন নিশ্চয়তা দেওয়া যাবে না।
+
 17. Support Center
 
 - Ticket Management
@@ -613,6 +990,10 @@ Repeat Visits একটি Summary Record-এ দেখানো হবে; ব�
 
 AI Recommendation দিতে পারবে; গুরুত্বপূর্ণ Action Admin অনুমোদন করবে।
 
+NEXORA AI কোনো সমস্যা সমাধান করতে না পারলে Support Ticket তৈরি করবে।
+
+Admin Response User-এর Support Center-এ দেখানো হবে।
+
 18. PWA Requirements
 
 ReviewHub Android ও Desktop-এ Installable হতে হবে।
@@ -625,6 +1006,8 @@ ReviewHub Android ও Desktop-এ Installable হতে হবে।
 - Update Management
 
 Online Features-এর জন্য Internet Connection প্রয়োজন হবে।
+
+Offline Mode-এ Authentication, Review Submission, AI এবং Admin Actions-এর মতো Online Feature কাজ করবে না।
 
 19. Database & Recovery
 
@@ -647,8 +1030,12 @@ Core Entities:
 - Support Tickets
 - Approval Records
 - Audit Logs
+- User Activity
+- Guest Records
 
 Database Schema বাস্তব Implementation-এর আগে যাচাই ও Finalize করতে হবে।
+
+প্রয়োজন অনুযায়ী Foreign Key, Unique Constraint, Index এবং Ownership Validation রাখতে হবে।
 
 Backup & Recovery:
 
@@ -660,6 +1047,8 @@ Backup & Recovery:
 - Backup Monitoring
 
 Restore-এর আগে Admin Confirmation বাধ্যতামূলক।
+
+Backup-এর বাস্তব পদ্ধতি, Free Tier Limit এবং Recovery Capability যাচাই করে Implementation করতে হবে। Backup আছে বলেই Recovery নিশ্চিত—এমন দাবি করা যাবে না।
 
 20. Development Phases
 
@@ -681,6 +1070,7 @@ Phase 2 — User System
 - User Profile
 - Account Settings
 - Password Security
+- Approved Login / Register Design Integration
 
 Phase 3 — Reviews & Publishers
 
@@ -709,6 +1099,8 @@ Phase 5 — PWA & AI
 - XELVOR AI Basic Integration
 - Support Escalation
 
+AI Integration শুধু Free Quota ও Verified Security Controls অনুযায়ী বাস্তবায়ন করতে হবে।
+
 Phase 6 — Testing & Launch
 
 - Functional Testing
@@ -718,7 +1110,17 @@ Phase 6 — Testing & Launch
 - Performance Testing
 - Final Deployment
 
-Advanced Features পরবর্তী Update-এ যুক্ত হবে।
+Future Advanced Roadmap
+
+- Advanced XELVOR Security Intelligence
+- Natural Language IP Management
+- Advanced Admin Analytics
+- Advanced AI Automation
+- Hybrid AI Auto Bug Detection & Repair
+- Advanced Backup Monitoring
+- Additional Intelligence Modules
+
+Future Features বাতিল করা হচ্ছে না। MVP-এর পরে প্রয়োজন ও Resource অনুযায়ী যুক্ত করা হবে।
 
 21. Security Testing Policy
 
@@ -739,20 +1141,30 @@ Testing Areas:
 
 শুধু নিজের Test Accounts ও Test Data ব্যবহার করতে হবে।
 
+Production User Data বা Third-party System ব্যবহার করে অনুমোদনহীন Testing করা যাবে না।
+
 সব সমস্যা Fix করে Retest করতে হবে।
 
 22. Important Development Rules
 
-1. Existing Approved Design পরিবর্তন করা যাবে না।
-2. Gemini নিজে থেকে UI Redesign করতে পারবে না।
-3. Unnecessary Dependencies যোগ করা যাবে না।
-4. Paid Service ব্যবহার করা যাবে না।
-5. Backend Security ছাড়া Frontend-only Validation গ্রহণযোগ্য নয়।
-6. Demo Data-কে Real Data হিসেবে দেখানো যাবে না।
-7. প্রতিটি Feature Test করতে হবে।
-8. Complete Replacement Files ও Exact File Paths দিতে হবে।
-9. নতুন Feature যোগ করার আগে Scope যাচাই করতে হবে।
-10. User-এর অনুমতি ছাড়া Project Vision পরিবর্তন করা যাবে না।
+1. Existing Approved Homepage Design পরিবর্তন করা যাবে না।
+2. Login/Register Design ChatGPT তৈরি ও নির্ধারণ করবে।
+3. Gemini নিজে থেকে Login/Register UI Redesign করতে পারবে না।
+4. Gemini অন্য ফাইলে Duplicate বা Alternative Login/Register System তৈরি করতে পারবে না।
+5. Unnecessary Dependencies যোগ করা যাবে না।
+6. Paid Service ব্যবহার করা যাবে না।
+7. Backend Security ছাড়া Frontend-only Validation গ্রহণযোগ্য নয়।
+8. Demo Data সম্পূর্ণ Website Development শেষ হওয়ার আগে সরানো যাবে না।
+9. Demo Data-কে Real Data হিসেবে দেখানো যাবে না।
+10. প্রতিটি Feature Test করতে হবে।
+11. Complete Replacement Files ও Exact File Paths দিতে হবে।
+12. নতুন Feature যোগ করার আগে Scope যাচাই করতে হবে।
+13. User-এর অনুমতি ছাড়া Project Vision পরিবর্তন করা যাবে না।
+14. আগে থেকে Approved Design ও Feature Requirements সংরক্ষণ করতে হবে।
+15. MVP-তে কোনো Advanced Feature না থাকলেও সেটি Future Roadmap থেকে বাদ যাবে না।
+16. Build Memory ও Runtime Performance সব Implementation-এ বিবেচনা করতে হবে।
+17. API Secrets কখনো Frontend বা Public Repository-তে রাখা যাবে না।
+18. AI-এর গুরুত্বপূর্ণ Action Backend Permission ও প্রয়োজনীয় Admin Confirmation ছাড়া কার্যকর হবে না।
 
 23. Current Project Status
 
@@ -768,6 +1180,10 @@ Testing Areas:
 
 বর্তমান Deployment সফল হলেও Website এখনো সম্পূর্ণ Functional Platform নয়।
 
+বর্তমান Frontend-এর Demo Data Development Preview হিসেবে থাকবে।
+
+Final Backend Integration-এর আগে Repository Structure, Existing Components এবং Build Configuration যাচাই করতে হবে।
+
 24. Final Project Goal
 
 ReviewHub হবে একটি:
@@ -776,4 +1192,16 @@ Premium, Secure, Lightweight, Responsive and Trustworthy App & Website Review Pl
 
 প্রথমে Core Website সম্পূর্ণ ও Launch-Ready করতে হবে। এরপর User Feedback, Usage এবং বাস্তব প্রয়োজন অনুযায়ী পূর্বনির্ধারিত Advanced Features ধাপে ধাপে যুক্ত করতে হবে।
 
-Project Principle: Build the Foundation Right. Launch Smart. Improve Continuously.
+Project Principle:
+
+Build the Foundation Right. Launch Smart. Improve Continuously.
+
+---
+
+DOCUMENT CONTROL
+
+এই Master Documentation হলো ReviewHub-এর প্রধান Project Reference।
+
+পরবর্তী Development Prompt, Code Review, UI/UX Implementation, Backend Design এবং Testing Plan এই Documentation-এর সঙ্গে সামঞ্জস্যপূর্ণ হতে হবে।
+
+কোনো নতুন সিদ্ধান্তে এই Documentation পরিবর্তন করতে হলে আগে সিদ্ধান্তটি অনুমোদন করতে হবে।
