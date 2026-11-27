@@ -1,157 +1,64 @@
-import { useMemo, useRef, useState } from 'react';
-import { CategoriesSection } from './components/CategoriesSection';
+import { lazy, Suspense, useEffect } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { CyberBackground } from './components/CyberBackground';
-import { FeaturedSection } from './components/FeaturedSection';
-import { Footer } from './components/Footer';
-import { HeroSection } from './components/HeroSection';
-import { ItemPreviewModal } from './components/ItemPreviewModal';
-import { Navbar } from './components/Navbar';
-import { TopRatedSection } from './components/TopRatedSection';
-import { TrendingSection } from './components/TrendingSection';
-import { DEMO_CATALOG_ITEMS, DEMO_CATEGORIES } from './data/homepageDemoData';
-import type { CatalogItem, FilterType } from './types/catalog';
+import { ErrorBoundary } from './components/foundation/ErrorBoundary';
+import { RouteFallback } from './components/foundation/RouteFallback';
+import HomePage from './pages/HomePage';
+
+const FoundationRoutePage = lazy(() => import('./pages/FoundationRoutePage'));
+const AuthFoundationPage = lazy(() => import('./pages/AuthFoundationPage'));
+const ProtectedRouteShell = lazy(() => import('./pages/ProtectedRouteShell'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+function ScrollManager() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) return;
+    window.scrollTo(0, 0);
+  }, [pathname, hash]);
+
+  return null;
+}
 
 export default function App() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<FilterType>('all');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
-  const [guestNotice, setGuestNotice] = useState<string | null>(null);
-
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-
-  const trendingItems = useMemo(
-    () => DEMO_CATALOG_ITEMS.filter((item) => item.isTrending).slice(0, 4),
-    [],
-  );
-
-  const topRatedItems = useMemo(
-    () =>
-      [...DEMO_CATALOG_ITEMS]
-        .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
-        .slice(0, 5),
-    [],
-  );
-
-  const filteredItems = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    return DEMO_CATALOG_ITEMS.filter((item) => {
-      if (typeFilter !== 'all' && item.type !== typeFilter) {
-        return false;
-      }
-      if (selectedCategoryId && item.categoryId !== selectedCategoryId) {
-        return false;
-      }
-      if (!query) {
-        return true;
-      }
-
-      const haystack = [
-        item.name,
-        item.tagline,
-        item.description,
-        item.categoryLabel,
-        item.publisherName,
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      return haystack.includes(query);
-    });
-  }, [searchQuery, typeFilter, selectedCategoryId]);
-
-  const selectedCategoryLabel = useMemo(() => {
-    if (!selectedCategoryId) return null;
-    return DEMO_CATEGORIES.find((cat) => cat.id === selectedCategoryId)?.name ?? null;
-  }, [selectedCategoryId]);
-
-  const totalDemoReviews = useMemo(
-    () => DEMO_CATALOG_ITEMS.reduce((sum, item) => sum + item.reviewCount, 0),
-    [],
-  );
-
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setTypeFilter('all');
-    setSelectedCategoryId(null);
-  };
-
-  const handleFocusSearch = () => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    searchInputRef.current?.focus();
-    searchInputRef.current?.scrollIntoView({
-      behavior: prefersReducedMotion ? 'auto' : 'smooth',
-      block: 'center',
-    });
-  };
-
-  const handleGuestAuthNotice = (actionLabel: string) => {
-    setGuestNotice(
-      `${actionLabel} ও Authentication পরবর্তী ধাপে যুক্ত হবে। এখন Guest হিসেবে সম্পূর্ণ Homepage ব্রাউজ ও Search করতে পারেন।`,
-    );
-  };
-
   return (
-    <div className="app-shell">
-      <CyberBackground />
+    <ErrorBoundary>
+      <div className="app-shell">
+        <CyberBackground />
+        <ScrollManager />
 
-      <Navbar
-        onGuestAuthNotice={handleGuestAuthNotice}
-        onFocusSearch={handleFocusSearch}
-      />
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/apps" element={<FoundationRoutePage mode="apps" />} />
+            <Route path="/websites" element={<FoundationRoutePage mode="websites" />} />
+            <Route path="/categories" element={<FoundationRoutePage mode="categories" />} />
+            <Route path="/search" element={<FoundationRoutePage mode="search" />} />
+            <Route path="/listings/:slug" element={<FoundationRoutePage mode="listing-detail" />} />
+            <Route path="/profiles/:username" element={<FoundationRoutePage mode="public-profile" />} />
+            <Route path="/about" element={<FoundationRoutePage mode="about" />} />
+            <Route path="/support" element={<FoundationRoutePage mode="support" />} />
+            <Route path="/privacy" element={<FoundationRoutePage mode="privacy" />} />
+            <Route path="/terms" element={<FoundationRoutePage mode="terms" />} />
 
-      <main className="main-content">
-        <HeroSection
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          typeFilter={typeFilter}
-          onTypeFilterChange={setTypeFilter}
-          searchInputRef={searchInputRef}
-          totalDemoItems={DEMO_CATALOG_ITEMS.length}
-          totalDemoReviews={totalDemoReviews}
-        />
+            {/* Auth Route Foundations (UI & Backend Auth in Part 02) */}
+            <Route path="/login" element={<AuthFoundationPage mode="login" />} />
+            <Route path="/register" element={<AuthFoundationPage mode="register" />} />
+            <Route path="/forgot-password" element={<AuthFoundationPage mode="forgot-password" />} />
 
-        <TrendingSection items={trendingItems} onSelectItem={setSelectedItem} />
+            {/* Authenticated, Publisher & Admin Route Structures */}
+            <Route path="/dashboard" element={<ProtectedRouteShell area="dashboard" />} />
+            <Route path="/settings" element={<ProtectedRouteShell area="settings" />} />
+            <Route path="/publisher" element={<ProtectedRouteShell area="publisher" />} />
+            <Route path="/admin" element={<ProtectedRouteShell area="admin" />} />
 
-        <CategoriesSection
-          categories={DEMO_CATEGORIES}
-          selectedCategoryId={selectedCategoryId}
-          onSelectCategory={setSelectedCategoryId}
-        />
-
-        <FeaturedSection
-          items={filteredItems}
-          searchQuery={searchQuery}
-          typeFilter={typeFilter}
-          selectedCategoryLabel={selectedCategoryLabel}
-          onResetFilters={handleResetFilters}
-          onSelectItem={setSelectedItem}
-        />
-
-        <TopRatedSection items={topRatedItems} onSelectItem={setSelectedItem} />
-      </main>
-
-      <Footer />
-
-      <ItemPreviewModal item={selectedItem} onClose={() => setSelectedItem(null)} />
-
-      {guestNotice && (
-        <div className="glass-panel glass-panel--elevated guest-toast" role="status" aria-live="polite">
-          <div className="guest-toast__text">
-            <span className="guest-toast__title">GUEST MODE ACTIVE</span>
-            {guestNotice}
-          </div>
-          <button
-            type="button"
-            className="icon-btn-sm"
-            aria-label="Dismiss Notice"
-            onClick={() => setGuestNotice(null)}
-          >
-            ✕
-          </button>
-        </div>
-      )}
-    </div>
+            {/* 404 Not Found */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </div>
+    </ErrorBoundary>
   );
 }
