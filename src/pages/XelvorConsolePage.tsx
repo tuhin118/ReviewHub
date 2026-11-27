@@ -1,44 +1,76 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { EnvBackdrop } from '../components/scifi/EnvBackdrop';
 
+interface ImageAttachmentPreview {
+  name: string;
+  sizeKb: number;
+  objectUrl: string;
+}
+
 const DEMO_THREAT_SIGNALS = [
   {
     id: 'sig-01',
-    severity: 'HIGH',
+    severity: 'HIGH (DEMO)',
     meter: 78,
     color: 'var(--sci-warn)',
-    event: 'Repeated 401 Lockout Burst (Demo Signal)',
-    evidence: 'Source: 198.51.100.x • [TOKEN REDACTED] • 5 failures / 15m',
+    event: 'Sample 401 Lockout Burst (Static Demo)',
+    evidence: 'Demo Example: 198.51.100.x • [DEMO PLACEHOLDER] • 5 failures / 15m',
   },
   {
     id: 'sig-02',
-    severity: 'LOW',
+    severity: 'LOW (DEMO)',
     meter: 26,
     color: 'var(--sci-neon)',
-    event: 'Shared CGNAT Burst Observed (Demo Signal)',
-    evidence: 'No permanent auto-ban triggered • Admin review advised',
+    event: 'Sample Shared CGNAT Burst (Static Demo)',
+    evidence: 'Illustrative demo only • No live IP telemetry connected',
   },
 ];
 
 export default function XelvorConsolePage() {
   const [commandInput, setCommandInput] = useState('');
+  const [imagePreview, setImagePreview] = useState<ImageAttachmentPreview | null>(null);
   const [consoleLog, setConsoleLog] = useState<string[]>([
-    '[XELVOR-CORE] Sentinel UI initialized. Admin-only access.',
+    '[XELVOR-UI] Visual preview shell initialized (Backend Admin auth pending 2B).',
     '[ADAPTER] Google Gemini API credentials not configured (Milestone 2C pending).',
-    '[POLICY] AI cannot execute irreversible actions without Admin confirmation.',
+    '[POLICY] UI preview only — no real security logs, D1 queries, or irreversible actions are active.',
   ]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview?.objectUrl) {
+        URL.revokeObjectURL(imagePreview.objectUrl);
+      }
+    };
+  }, [imagePreview]);
+
+  const handleImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview({
+      name: file.name,
+      sizeKb: Math.max(1, Math.round(file.size / 1024)),
+      objectUrl,
+    });
+    event.target.value = '';
+  };
 
   const handleCommand = (event: FormEvent) => {
     event.preventDefault();
     const trimmed = commandInput.trim();
-    if (!trimmed) return;
+    if (!trimmed && !imagePreview) return;
+
+    const promptLine = imagePreview
+      ? `> admin@preview:~$ ${trimmed || 'inspect-attached-image'} [Image Preview: ${imagePreview.name}]`
+      : `> admin@preview:~$ ${trimmed}`;
 
     setConsoleLog((prev) => [
       ...prev,
-      `> admin@sentinel:~$ ${trimmed}`,
+      promptLine,
       '[STATUS] Provider not configured: live AI analysis and D1 security log queries activate in Milestone 2C.',
     ]);
     setCommandInput('');
@@ -53,7 +85,7 @@ export default function XelvorConsolePage() {
           <header className="sci-panel hud-brackets pub-flightbar">
             <div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.45rem' }}>
-                <span className="hud-chip hud-chip--cyan">XELVOR // ADMIN SENTINEL CORE</span>
+                <span className="hud-chip hud-chip--cyan">XELVOR // ADMIN SENTINEL UI PREVIEW</span>
                 <span className="hud-chip hud-chip--warn">GEMINI PROVIDER: NOT CONFIGURED</span>
               </div>
               <h1 className="foundation-title">XELVOR Threat Intelligence Lab</h1>
@@ -64,17 +96,19 @@ export default function XelvorConsolePage() {
           </header>
 
           <div className="xelvor-grid">
-            <section className="sci-panel hud-brackets xelvor-card" aria-label="Security Telemetry Feed">
+            <section className="sci-panel hud-brackets xelvor-card" aria-label="Demo Security Feed">
               <div className="foundation-card__header">
-                <h2 className="section-title">Real-Time Threat Signals (Demo Shell)</h2>
-                <span className="hud-chip">SECRET REDACTION ON</span>
+                <h2 className="section-title">Sample Threat Signals (Static Demo)</h2>
+                <span className="hud-chip hud-chip--warn">REDACTION: PENDING 2B</span>
               </div>
 
               {DEMO_THREAT_SIGNALS.map((sig) => (
                 <div key={sig.id} className="foundation-box">
                   <div className="foundation-card__header">
                     <strong>{sig.event}</strong>
-                    <span className={`hud-chip ${sig.severity === 'HIGH' ? 'hud-chip--warn' : ''}`}>
+                    <span
+                      className={`hud-chip ${sig.severity.includes('HIGH') ? 'hud-chip--warn' : ''}`}
+                    >
                       {sig.severity}
                     </span>
                   </div>
@@ -91,14 +125,70 @@ export default function XelvorConsolePage() {
 
             <section className="sci-panel hud-brackets xelvor-card" aria-label="XELVOR Command Console">
               <div className="foundation-card__header">
-                <h2 className="section-title">Natural-Language Security Console</h2>
-                <span className="hud-chip hud-chip--danger">STEP-UP GUARDED</span>
+                <h2 className="section-title">Security Command Console (UI Preview)</h2>
+                <span className="hud-chip hud-chip--warn">STEP-UP GUARD: PENDING 2B</span>
               </div>
 
               <div className="terminal-console" role="log" aria-live="polite">
                 {consoleLog.map((line, index) => (
                   <div key={index}>{line}</div>
                 ))}
+              </div>
+
+              <div className="foundation-box">
+                <div className="foundation-card__header">
+                  <span className="foundation-box__label">
+                    Evidence Image Interface (Visual-Only Preview)
+                  </span>
+                  <span className="hud-chip hud-chip--warn">UPLOAD PENDING 2C</span>
+                </div>
+
+                <div className="foundation-actions" style={{ alignItems: 'center' }}>
+                  <label htmlFor="xelvor-image-input" className="btn btn-secondary">
+                    Attach Image (Local Preview)
+                  </label>
+                  <input
+                    id="xelvor-image-input"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={handleImageSelect}
+                  />
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setImagePreview(null)}
+                    >
+                      Clear Image
+                    </button>
+                  )}
+                </div>
+
+                {imagePreview ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <img
+                      src={imagePreview.objectUrl}
+                      alt="Selected security evidence preview"
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '1px solid var(--sci-border-cyan)',
+                      }}
+                    />
+                    <span className="telemetry-note">
+                      {imagePreview.name} ({imagePreview.sizeKb} KB) — Client-side preview only; no
+                      server upload or AI scan active.
+                    </span>
+                  </div>
+                ) : (
+                  <p className="telemetry-note">
+                    Visual placeholder for XELVOR image inspection interface (no audio/voice
+                    playback; backend validation pending Milestone 2C).
+                  </p>
+                )}
               </div>
 
               <form className="nexora-composer" onSubmit={handleCommand}>
