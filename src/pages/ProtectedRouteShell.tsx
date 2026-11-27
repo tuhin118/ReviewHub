@@ -1,14 +1,41 @@
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { RouteGuard } from '../components/foundation/RouteGuard';
+import AdminCommandCenterPage from './AdminCommandCenterPage';
+import PublisherDashboardPage from './PublisherDashboardPage';
+import XelvorConsolePage from './XelvorConsolePage';
 
 interface ProtectedRouteShellProps {
-  area: 'dashboard' | 'settings' | 'publisher' | 'admin';
+  area: 'dashboard' | 'settings' | 'publisher' | 'admin' | 'xelvor';
 }
 
 export default function ProtectedRouteShell({ area }: ProtectedRouteShellProps) {
   const requiredRole =
-    area === 'publisher' ? 'publisher' : area === 'admin' ? 'admin' : 'user';
+    area === 'publisher' ? 'publisher' : area === 'admin' || area === 'xelvor' ? 'admin' : 'user';
+
+  if (area === 'publisher') {
+    return (
+      <RouteGuard requiredRole={requiredRole} allowUiPreview>
+        <PublisherDashboardPage />
+      </RouteGuard>
+    );
+  }
+
+  if (area === 'admin') {
+    return (
+      <RouteGuard requiredRole={requiredRole} allowUiPreview>
+        <AdminCommandCenterPage />
+      </RouteGuard>
+    );
+  }
+
+  if (area === 'xelvor') {
+    return (
+      <RouteGuard requiredRole={requiredRole} allowUiPreview>
+        <XelvorConsolePage />
+      </RouteGuard>
+    );
+  }
 
   return (
     <>
