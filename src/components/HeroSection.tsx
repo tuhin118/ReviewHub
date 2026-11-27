@@ -43,8 +43,8 @@ export function HeroSection({
             </h1>
 
             <p className="hero-subtitle">
-              লগইন ছাড়াই Android অ্যাপ ও ওয়েবসাইট খুঁজে দেখুন, ১–৫ স্টার রেটিং তুলনা করুন এবং
-              কমিউনিটি রিভিউ পড়ুন। আপনার প্রয়োজনীয় টুল খুঁজতে নিচে সার্চ করুন।
+              Explore Android apps and websites without logging in, compare 1–5 star ratings, and
+              read community reviews. Search below to discover the tools you need.
             </p>
 
             <form className="search-box" role="search" onSubmit={handleSubmit}>
@@ -147,7 +147,8 @@ export function HeroSection({
             </div>
 
             <p className="telemetry-note">
-              সব পাবলিক পোস্ট, রেটিং ও রিভিউ লগইন ছাড়াই দেখা যাবে। প্রদর্শিত সব সংখ্যা ও প্রোফাইল Static Demo Data।
+              All public listings, ratings, and reviews are viewable without login. All counts and
+              profiles shown are Static Demo Data.
             </p>
           </aside>
         </div>
