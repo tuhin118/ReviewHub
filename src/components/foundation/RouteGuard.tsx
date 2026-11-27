@@ -37,9 +37,9 @@ export function RouteGuard({
 
           <h1 className="foundation-title">Authentication Required</h1>
           <p className="foundation-subtitle">
-            এই সেকশনটি ({requiredRole} access) Part 01-এ শুধুমাত্র রাউট ফাউন্ডেশন হিসেবে প্রস্তুত
-            করা হয়েছে। Part 02-তে সম্পূর্ণ Server-side Authentication ও Backend Role Verification
-            যুক্ত হলে কেবল অনুমোদিত অ্যাকাউন্ট এখানে প্রবেশ করতে পারবে।
+            This section ({requiredRole} access) is prepared as a route foundation in Part 01. Once
+            server-side authentication and backend role verification are implemented in Part 02,
+            only authorized accounts will be able to access this route.
           </p>
 
           <div className="foundation-actions">
