@@ -1,0 +1,15 @@
+name = "reviewhub"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = "dist"
+
+[vars]
+ENVIRONMENT = "development"
+APP_NAME = "ReviewHub"
+
+# Cloudflare D1 Database Binding
+# Replace database_id after running: npx wrangler d1 create reviewhub-db
+[[d1_databases]]
+binding = "DB"
+database_name = "reviewhub-db"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "db/migrations"
