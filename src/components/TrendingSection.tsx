@@ -17,7 +17,7 @@ export function TrendingSection({ items, onSelectItem }: TrendingSectionProps) {
               Trending Apps &amp; Websites
             </h2>
           </div>
-          <p className="section-desc">এই সপ্তাহের নমুনা জনপ্রিয় টুলসমূহ (Static Demo Data)।</p>
+          <p className="section-desc">Sample popular tools for this week (Static Demo Data).</p>
         </div>
 
         <div className="trending-grid">
@@ -45,7 +45,7 @@ export function TrendingSection({ items, onSelectItem }: TrendingSectionProps) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  aria-label={`${item.name} প্রিভিউ দেখুন`}
+                  aria-label={`Inspect preview for ${item.name}`}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}
                   onClick={() => onSelectItem(item)}
                 >
