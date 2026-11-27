@@ -26,61 +26,61 @@ const ROUTE_CONTENT: Record<FoundationMode, { badge: string; title: string; desc
     badge: 'PUBLIC ROUTE // APPS',
     title: 'Android Applications Directory',
     description:
-      'Android অ্যাপগুলোর ডিসকভারি পেজ রুট ফাউন্ডেশন। পরবর্তী ধাপে লাইভ D1 Catalog API ও ফিল্টার যুক্ত হবে।',
+      'Route foundation for the Android Apps discovery page. Live D1 catalog listings and filters will be connected in upcoming phases.',
   },
   websites: {
     badge: 'PUBLIC ROUTE // WEBSITES',
     title: 'Websites Directory',
     description:
-      'ওয়েবসাইট ডিসকভারি পেজ রুট ফাউন্ডেশন। পরবর্তী ধাপে অনুমোদিত ওয়েবসাইট তালিকা ও ফিল্টার যুক্ত হবে।',
+      'Route foundation for the Websites discovery page. Approved website listings and filters will be connected in upcoming phases.',
   },
   categories: {
     badge: 'PUBLIC ROUTE // CATEGORIES',
     title: 'Taxonomy & Categories',
     description:
-      'ক্যাটাগরি ও সাব-ক্যাটাগরি ডিসকভারির জন্য ফাউন্ডেশন রুট। আপনি হোমপেজের Categories সেকশনে ডেমো ফিল্টারিং দেখতে পারেন।',
+      'Foundation route for category and subcategory discovery. Live demo category filtering is currently available on the Homepage.',
   },
   search: {
     badge: 'PUBLIC ROUTE // SEARCH',
     title: 'Intelligence Search',
     description:
-      'গ্লোবাল সার্চ ফাউন্ডেশন রুট। এখন হোমপেজের Search বারে Static Demo ডেটায় লাইভ সার্চ চালু আছে।',
+      'Global search route foundation. Live search over static demo data is currently active on the Homepage search bar.',
   },
   'listing-detail': {
     badge: 'PUBLIC ROUTE // LISTING DETAILS',
     title: 'Listing Details Foundation',
     description:
-      'প্রতিটি App/Website-এর বিস্তারিত তথ্য, গড় রেটিং ও Approved রিভিউ দেখানোর রুট ফাউন্ডেশন।',
+      'Foundation route for displaying full app/website details, average rating distribution, and approved user reviews.',
   },
   'public-profile': {
     badge: 'PUBLIC ROUTE // USER PROFILE',
     title: 'Public User Profile Foundation',
     description:
-      'ব্যবহারকারীর পাবলিক প্রোফাইল ও কন্ট্রিবিউশন দেখানোর রুট ফাউন্ডেশন (প্রাইভেসি নিয়ন্ত্রণসহ)।',
+      'Foundation route for displaying a user public profile and contributions with privacy controls.',
   },
   about: {
     badge: 'INFO // ABOUT',
     title: 'About ReviewHub',
     description:
-      'ReviewHub — Discover. Review. Trust. এটি একটি Free-Tier-First অ্যাপ ও ওয়েবসাইট রিভিউ প্ল্যাটফর্ম।',
+      'ReviewHub — Discover. Review. Trust. A free-tier-first platform for trusted app and website intelligence.',
   },
   support: {
     badge: 'INFO // SUPPORT',
     title: 'Help & Support Center',
     description:
-      'ব্যবহারকারী সহায়তা ও সাপোর্ট টিকেট সিস্টেমের ফাউন্ডেশন রুট (পরবর্তী ধাপে Backend-এর সাথে যুক্ত হবে)।',
+      'Foundation route for user assistance and support ticket workflows (to be connected with the backend in upcoming phases).',
   },
   privacy: {
     badge: 'LEGAL // PRIVACY',
     title: 'Privacy Policy',
     description:
-      'ব্যবহারকারীর প্রাইভেসি সুরক্ষা, কুকি নীতি ও নিরাপদ ডেটা ব্যবস্থাপনার ফাউন্ডেশন রুট।',
+      'Foundation route for ReviewHub user privacy protections, cookie policy, and data handling practices.',
   },
   terms: {
     badge: 'LEGAL // TERMS',
     title: 'Terms of Service',
     description:
-      'ReviewHub ব্যবহারের শর্তাবলি, রিভিউ নীতি ও কন্টেন্ট মডারেশন নির্দেশিকার ফাউন্ডেশন রুট।',
+      'Foundation route for ReviewHub terms of service, review standards, and content moderation policies.',
   },
 };
 
@@ -133,8 +133,8 @@ export default function FoundationRoutePage({ mode }: FoundationRoutePageProps) 
             <div className="foundation-box">
               <span className="foundation-box__label">API Connectivity Foundation</span>
               <p className="section-desc">
-                Same-origin <code>/api/v1/health</code> এন্ডপয়েন্ট পরীক্ষা করুন (Wrangler Pages Dev চালু
-                থাকলে রেসপন্স দেখাবে)।
+                Test the same-origin <code>/api/v1/health</code> endpoint (responds when Cloudflare
+                Pages Functions or Wrangler Pages Dev is active).
               </p>
               <div className="foundation-actions">
                 <button
@@ -156,8 +156,8 @@ export default function FoundationRoutePage({ mode }: FoundationRoutePageProps) 
             <div className="foundation-box">
               <span className="foundation-box__label">Current Demo Preview</span>
               <p className="section-desc">
-                হোমপেজে ফিরে গিয়ে Static Demo ডেটার সাথে Search, Category Filter ও Preview Modal ব্যবহার
-                করতে পারেন।
+                Return to the homepage to explore live search, category filtering, and the item
+                preview modal with static demo data.
               </p>
               <div className="foundation-actions">
                 <Link to="/" className="btn btn-primary">
