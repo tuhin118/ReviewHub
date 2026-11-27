@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
@@ -10,6 +10,12 @@ interface ChatMessage {
   text: string;
 }
 
+interface ScreenshotPreview {
+  name: string;
+  sizeKb: number;
+  objectUrl: string;
+}
+
 const QUICK_PROMPTS = [
   'How do I navigate ReviewHub?',
   'Why is my review still Pending?',
@@ -19,25 +25,51 @@ const QUICK_PROMPTS = [
 
 export default function NexoraAssistantPage() {
   const [promptInput, setPromptInput] = useState('');
+  const [screenshot, setScreenshot] = useState<ScreenshotPreview | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'nx-init',
       sender: 'ai',
-      text: 'NEXORA UI Shell online. Once Google Gemini API credentials are configured in Milestone 2C backend secrets, I will assist with ReviewHub navigation, review submission rules, and support escalation.',
+      text: 'NEXORA UI Shell online (Static Preview). Once Google Gemini API credentials are configured in Milestone 2C backend secrets, I will assist with ReviewHub navigation, review submission help, and screenshot troubleshooting.',
     },
   ]);
 
+  useEffect(() => {
+    return () => {
+      if (screenshot?.objectUrl) {
+        URL.revokeObjectURL(screenshot.objectUrl);
+      }
+    };
+  }, [screenshot]);
+
+  const handleScreenshotSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    setScreenshot({
+      name: file.name,
+      sizeKb: Math.max(1, Math.round(file.size / 1024)),
+      objectUrl,
+    });
+    event.target.value = '';
+  };
+
   const handleSend = (textToSend: string) => {
     const trimmed = textToSend.trim();
-    if (!trimmed) return;
+    if (!trimmed && !screenshot) return;
+
+    const userText = screenshot
+      ? `${trimmed || 'Screenshot troubleshooting query'} [Local Preview Attached: ${screenshot.name}]`
+      : trimmed;
 
     setMessages((prev) => [
       ...prev,
-      { id: `u-${Date.now()}`, sender: 'user', text: trimmed },
+      { id: `u-${Date.now()}`, sender: 'user', text: userText },
       {
         id: `a-${Date.now() + 1}`,
         sender: 'ai',
-        text: 'AI Provider Status: Google Gemini API adapter is not connected yet (Milestone 2C pending credentials). No simulated AI response is generated.',
+        text: 'AI Provider Status: Google Gemini API adapter is not configured yet (Milestone 2C pending). No file was uploaded and no simulated AI response is generated.',
       },
     ]);
     setPromptInput('');
@@ -79,11 +111,67 @@ export default function NexoraAssistantPage() {
                   className={`nexora-msg ${msg.sender === 'ai' ? 'nexora-msg--ai' : 'nexora-msg--user'}`}
                 >
                   <span className="foundation-box__label">
-                    {msg.sender === 'ai' ? 'NEXORA SYSTEM' : 'YOU'}
+                    {msg.sender === 'ai' ? 'NEXORA UI SHELL' : 'YOU (LOCAL PREVIEW)'}
                   </span>
                   <p className="section-desc">{msg.text}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="foundation-box">
+              <div className="foundation-card__header">
+                <span className="foundation-box__label">
+                  Screenshot Troubleshooting (Visual-Only Preview)
+                </span>
+                <span className="hud-chip hud-chip--warn">UPLOAD PENDING 2C</span>
+              </div>
+
+              <div className="foundation-actions" style={{ alignItems: 'center' }}>
+                <label htmlFor="nexora-screenshot-input" className="btn btn-secondary">
+                  Select Screenshot (Local Preview)
+                </label>
+                <input
+                  id="nexora-screenshot-input"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={handleScreenshotSelect}
+                />
+                {screenshot && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setScreenshot(null)}
+                  >
+                    Remove Preview
+                  </button>
+                )}
+              </div>
+
+              {screenshot ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <img
+                    src={screenshot.objectUrl}
+                    alt="Selected screenshot preview"
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      border: '1px solid var(--sci-border)',
+                    }}
+                  />
+                  <span className="telemetry-note">
+                    {screenshot.name} ({screenshot.sizeKb} KB) — Client-side preview only; not
+                    uploaded.
+                  </span>
+                </div>
+              ) : (
+                <p className="telemetry-note">
+                  Visual placeholder for screenshot-based troubleshooting (max 10 MB validation and
+                  backend processing activate in Milestone 2C).
+                </p>
+              )}
             </div>
 
             <div className="nexora-prompts" aria-label="Suggested ReviewHub Topics">
@@ -117,7 +205,8 @@ export default function NexoraAssistantPage() {
 
             <div className="foundation-card__header">
               <span className="telemetry-note">
-                Scoped strictly to ReviewHub help. Unresolved issues escalate to Support Tickets.
+                Scoped strictly to ReviewHub help. Unresolved issues escalate to Support Tickets in
+                Milestone 2C.
               </span>
               <Link to="/support" className="btn btn-secondary">
                 Support Center
