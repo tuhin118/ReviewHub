@@ -30,7 +30,9 @@ export function CategoriesSection({
               Show All Categories
             </button>
           ) : (
-            <p className="section-desc">যেকোনো ক্যাটাগরিতে ক্লিক করে নিচের Featured তালিকা ফিল্টার করুন।</p>
+            <p className="section-desc">
+              Select any category to filter the Featured list below.
+            </p>
           )}
         </div>
 
