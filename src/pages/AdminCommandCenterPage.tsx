@@ -37,11 +37,11 @@ export default function AdminCommandCenterPage() {
           <div className="sci-panel hud-brackets admin-ticker">
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
               <span className="hud-chip hud-chip--cyan">MILITARY INTELLIGENCE CITADEL</span>
-              <span>CLEARANCE: ADMIN UI SHELL</span>
+              <span>UI PREVIEW SHELL // SAMPLE DEMO DATA ONLY</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <Link to="/admin/xelvor" className="btn btn-secondary" style={{ minHeight: '44px' }}>
-                Launch XELVOR AI Console
+              <Link to="/admin/xelvor" className="btn btn-secondary">
+                Launch XELVOR UI Preview
               </Link>
               <button
                 type="button"
@@ -74,32 +74,32 @@ export default function AdminCommandCenterPage() {
             <section className="admin-workspace" aria-label="Admin Module Workspace">
               <div className="admin-kpi-grid sci-stagger">
                 <article className="sci-panel sci-panel--interactive hud-brackets pub-metric-card">
-                  <span className="foundation-box__label">Pending Approvals (Demo)</span>
+                  <span className="foundation-box__label">Pending Approvals (Sample)</span>
                   <span className="pub-metric-val">
                     <AnimatedCounter target={14} />
                   </span>
-                  <span className="section-desc">Listings, Revisions &amp; Reviews</span>
+                  <span className="section-desc">Demo Listings, Revisions &amp; Reviews</span>
                 </article>
                 <article className="sci-panel sci-panel--interactive hud-brackets pub-metric-card">
-                  <span className="foundation-box__label">Verified Publishers (Demo)</span>
+                  <span className="foundation-box__label">Verified Publishers (Sample)</span>
                   <span className="pub-metric-val">
                     <AnimatedCounter target={28} />
                   </span>
-                  <span className="section-desc">Backend Guard Enforced</span>
+                  <span className="section-desc">Demo Count (Guard Pending 2B)</span>
                 </article>
                 <article className="sci-panel sci-panel--interactive hud-brackets pub-metric-card">
-                  <span className="foundation-box__label">Active Bans (Demo)</span>
+                  <span className="foundation-box__label">Active Bans (Sample)</span>
                   <span className="pub-metric-val" style={{ color: 'var(--sci-cyan)' }}>
                     <AnimatedCounter target={3} />
                   </span>
-                  <span className="section-desc">Login / Posting / IP</span>
+                  <span className="section-desc">Demo Login / Posting / IP</span>
                 </article>
                 <article className="sci-panel sci-panel--interactive hud-brackets pub-metric-card">
-                  <span className="foundation-box__label">D1 Storage Health</span>
+                  <span className="foundation-box__label">Storage Gauge (Demo Sample)</span>
                   <span className="pub-metric-val">
                     <AnimatedCounter target={12} suffix="%" />
                   </span>
-                  <span className="section-desc">500MB Shared Limit Monitor</span>
+                  <span className="section-desc">UI Placeholder (500MB Monitor 2C)</span>
                 </article>
               </div>
 
@@ -107,37 +107,41 @@ export default function AdminCommandCenterPage() {
                 <div className="foundation-card__header">
                   <div>
                     <span className="hud-chip hud-chip--cyan">
-                      ACTIVE MODULE // {activeModule.toUpperCase()}
+                      UI MODULE // {activeModule.toUpperCase()}
                     </span>
                     <h1 className="section-title" style={{ marginTop: '0.4rem' }}>
                       {ADMIN_MODULES.find((m) => m.id === activeModule)?.label}
                     </h1>
                   </div>
-                  <span className="hud-chip hud-chip--warn">API &amp; TOTP AUTH PENDING 2B/2C</span>
+                  <span className="hud-chip hud-chip--warn">
+                    STATIC DEMO // BACKEND PENDING 2B/2C
+                  </span>
                 </div>
 
                 {activeModule === 'overview' && (
                   <div className="admin-row">
                     <div>
-                      <strong>System Command Readiness</strong>
+                      <strong>Admin Command UI Shell (Demo Preview)</strong>
                       <p className="section-desc">
-                        Visual command deck ready. D1 live queues, step-up authentication, and
-                        audit persistence connect in Milestones 2B–2C.
+                        Visual layout preview only. Live D1 queries, TOTP 2FA enforcement, and
+                        append-only audit writes will be implemented in Milestones 2B–2C.
                       </p>
                     </div>
-                    <span className="hud-chip">APPEND-ONLY LOGS READY</span>
+                    <span className="hud-chip hud-chip--warn">LOGS &amp; API PENDING 2B/2C</span>
                   </div>
                 )}
 
                 {activeModule === 'users' && (
                   <div className="admin-row">
                     <div>
-                      <strong>Sample User: nadia.r@gmail.com</strong>
-                      <p className="section-desc">Role: User • Email Verified • Status: Active</p>
+                      <strong>Demo Record: nadia.r@example.invalid</strong>
+                      <p className="section-desc">
+                        Sample Role: User • Demo Status: Active (Static Placeholder)
+                      </p>
                     </div>
                     <div className="admin-row__actions">
-                      <span className="hud-chip">ROLE CONTROLS (2C)</span>
-                      <span className="hud-chip hud-chip--cyan">SESSION REVOKE (2C)</span>
+                      <span className="hud-chip hud-chip--warn">ROLE CONTROLS PENDING 2C</span>
+                      <span className="hud-chip hud-chip--cyan">SESSION REVOKE PENDING 2B</span>
                     </div>
                   </div>
                 )}
@@ -145,62 +149,64 @@ export default function AdminCommandCenterPage() {
                 {activeModule === 'publishers' && (
                   <div className="admin-row">
                     <div>
-                      <strong>Kestrel Sec Labs (Publisher Application)</strong>
+                      <strong>Demo Record: Kestrel Sec Labs (Sample Publisher)</strong>
                       <p className="section-desc">
-                        Admin grant &amp; instant backend revocation controls connect in Milestone 2C.
+                        Admin grant and instant backend permission revocation will be wired in
+                        Milestones 2B–2C.
                       </p>
                     </div>
-                    <span className="hud-chip hud-chip--cyan">BACKEND VERIFIED ROLE</span>
+                    <span className="hud-chip hud-chip--warn">BACKEND GUARD PENDING 2B/2C</span>
                   </div>
                 )}
 
                 {activeModule === 'approvals' && (
                   <div className="admin-row">
                     <div>
-                      <strong>Pending Queue: PacketGuard DNS (Android App)</strong>
+                      <strong>Demo Queue Item: PacketGuard DNS (Sample App)</strong>
                       <p className="section-desc">
-                        Supports New Listings, Post Revisions, New Reviews &amp; Review Revisions.
+                        UI placeholder for New Listings, Post Revisions, New Reviews &amp; Review
+                        Revisions.
                       </p>
                     </div>
-                    <span className="hud-chip hud-chip--warn">PENDING REVIEW</span>
+                    <span className="hud-chip hud-chip--warn">DEMO PENDING QUEUE</span>
                   </div>
                 )}
 
                 {activeModule === 'bans' && (
                   <div className="admin-row">
                     <div>
-                      <strong>Three-Level Ban Matrix</strong>
+                      <strong>Three-Level Ban Matrix (UI Placeholder)</strong>
                       <p className="section-desc">
-                        Supports Login Ban (Temp/Perm), Posting Ban, and IP Security Ban with fast
-                        Unban.
+                        Planned support for Login Ban (Temp/Perm), Posting Ban, and IP Security Ban
+                        with fast Unban.
                       </p>
                     </div>
-                    <span className="hud-chip hud-chip--danger">STEP-UP GUARD</span>
+                    <span className="hud-chip hud-chip--warn">ENFORCEMENT PENDING 2B/2C</span>
                   </div>
                 )}
 
                 {activeModule === 'audit' && (
                   <div className="admin-row">
                     <div>
-                      <strong>AUDIT-2026-001 • GRANT_PUBLISHER (Demo Record)</strong>
+                      <strong>DEMO-AUDIT-001 • GRANT_PUBLISHER (Static Sample)</strong>
                       <p className="section-desc">
-                        Application-level append-only log • Secret redaction enabled.
+                        Planned application-level append-only audit log with secret redaction.
                       </p>
                     </div>
-                    <span className="hud-chip hud-chip--cyan">IMMUTABLE BY API</span>
+                    <span className="hud-chip hud-chip--warn">PERSISTENCE PENDING 2B/2C</span>
                   </div>
                 )}
 
                 {activeModule === 'analytics' && (
                   <div className="admin-row">
                     <div>
-                      <strong>Platform Growth &amp; Rating Telemetry</strong>
+                      <strong>Platform Growth &amp; Rating Telemetry (Demo Preview)</strong>
                       <p className="section-desc">
-                        Aggregates approved listings, user retention, and moderation velocity from D1
-                        in Milestone 2C.
+                        UI placeholder. Real aggregated D1 analytics will be connected in Milestone
+                        2C.
                       </p>
                     </div>
-                    <span className="hud-chip">ANALYTICS ENGINE</span>
+                    <span className="hud-chip hud-chip--warn">D1 INTEGRATION PENDING 2C</span>
                   </div>
                 )}
               </div>
