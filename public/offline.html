@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#00ff88" />
+    <title>ReviewHub — Offline</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background: #030605;
+        color: #f8fafc;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .card {
+        max-width: 440px;
+        padding: 1.75rem;
+        border-radius: 16px;
+        background: #080f0c;
+        border: 1px solid rgba(0, 255, 136, 0.35);
+        text-align: center;
+      }
+      .tag {
+        display: inline-block;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(0, 255, 136, 0.12);
+        color: #10f5a0;
+        font-family: monospace;
+        font-size: 0.75rem;
+        margin-bottom: 0.9rem;
+      }
+      h1 {
+        margin: 0 0 0.6rem;
+        font-size: 1.35rem;
+      }
+      p {
+        margin: 0 0 1.25rem;
+        color: #d1ddd6;
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 1.2rem;
+        border-radius: 10px;
+        background: #00ff88;
+        color: #030605;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <span class="tag">OFFLINE MODE</span>
+      <h1>Internet Connection Unavailable</h1>
+      <p>
+        ReviewHub-এর লাইভ ডেটা, সার্চ ও অ্যাকাউন্ট ফিচারের জন্য ইন্টারনেট সংযোগ প্রয়োজন।
+        সংযোগ ফিরে এলে পুনরায় চেষ্টা করুন।
+      </p>
+      <a href="/">Retry Connection</a>
+    </main>
+  </body>
+</html>
