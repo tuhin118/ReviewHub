@@ -10,19 +10,19 @@ type PublisherTab = 'deck' | 'submit' | 'revisions' | 'analytics';
 const DEMO_PUBLISHER_POSTS = [
   {
     id: 'pub-1',
-    title: 'AegisGrid Vault',
+    title: 'AegisGrid Vault (Demo)',
     type: 'Android App',
-    status: 'Approved',
-    revisionStatus: 'Pending Revision',
+    status: 'Approved (Demo)',
+    revisionStatus: 'Pending Revision (Demo)',
     views: 4820,
     rating: '4.9',
   },
   {
     id: 'pub-2',
-    title: 'PacketGuard DNS',
+    title: 'PacketGuard DNS (Demo)',
     type: 'Android App',
-    status: 'Pending',
-    revisionStatus: 'Initial Review',
+    status: 'Pending (Demo)',
+    revisionStatus: 'Initial Review (Demo)',
     views: 0,
     rating: '—',
   },
@@ -32,12 +32,12 @@ const SPARKLINE_HEIGHTS = [38, 52, 46, 70, 64, 88, 95];
 
 export default function PublisherDashboardPage() {
   const [activeTab, setActiveTab] = useState<PublisherTab>('deck');
-  const [draftTitle, setDraftTitle] = useState('CipherPulse Inspector');
+  const [draftTitle, setDraftTitle] = useState('CipherPulse Inspector (Demo Draft)');
   const [draftType, setDraftType] = useState<'app' | 'website'>('app');
   const [draftCategory, setDraftCategory] = useState('Security & Privacy');
-  const [draftUrl, setDraftUrl] = useState('https://cipherpulse.example.org');
+  const [draftUrl, setDraftUrl] = useState('https://cipherpulse.example.invalid');
   const [draftTagline, setDraftTagline] = useState(
-    'Zero-telemetry network header & certificate verifier.',
+    'Sample preview description for the Milestone 2A publisher UI shell.',
   );
 
   return (
@@ -50,7 +50,7 @@ export default function PublisherDashboardPage() {
             <div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.45rem' }}>
                 <span className="hud-chip">ORBITAL SUBMISSION DECK</span>
-                <span className="hud-chip hud-chip--warn">UI PREVIEW // API PENDING 2C</span>
+                <span className="hud-chip hud-chip--warn">STATIC UI PREVIEW // API PENDING 2C</span>
               </div>
               <h1 className="foundation-title">Verified Publisher Workspace</h1>
             </div>
@@ -58,10 +58,10 @@ export default function PublisherDashboardPage() {
             <nav className="pub-tabs" aria-label="Publisher Deck Sections">
               {(
                 [
-                  ['deck', 'My Listings'],
+                  ['deck', 'My Listings (Demo)'],
                   ['submit', 'New Submission'],
-                  ['revisions', 'Revision Diff'],
-                  ['analytics', 'Content Analytics'],
+                  ['revisions', 'Revision Diff (Demo)'],
+                  ['analytics', 'Analytics (Demo)'],
                 ] as const
               ).map(([key, label]) => (
                 <button
@@ -77,45 +77,45 @@ export default function PublisherDashboardPage() {
             </nav>
           </header>
 
-          <section className="pub-metrics-row sci-stagger" aria-label="Publisher Telemetry">
+          <section className="pub-metrics-row sci-stagger" aria-label="Publisher Sample Telemetry">
             <article className="sci-panel sci-panel--interactive pub-metric-card">
-              <span className="foundation-box__label">Published Items (Demo)</span>
+              <span className="foundation-box__label">Published Items (Sample)</span>
               <span className="pub-metric-val">
                 <AnimatedCounter target={1} />
               </span>
-              <span className="section-desc">Admin Approved &amp; Live</span>
+              <span className="section-desc">Static Demo Record</span>
             </article>
             <article className="sci-panel sci-panel--interactive pub-metric-card">
-              <span className="foundation-box__label">Pending Queue (Demo)</span>
+              <span className="foundation-box__label">Pending Queue (Sample)</span>
               <span className="pub-metric-val">
                 <AnimatedCounter target={2} />
               </span>
-              <span className="section-desc">1 New + 1 Pending Revision</span>
+              <span className="section-desc">1 Demo New + 1 Demo Revision</span>
             </article>
             <article className="sci-panel sci-panel--interactive pub-metric-card">
-              <span className="foundation-box__label">Total Views (Demo)</span>
+              <span className="foundation-box__label">Sample Views (Demo)</span>
               <span className="pub-metric-val">
                 <AnimatedCounter target={4820} />
               </span>
-              <span className="section-desc">Last 30 Days Sample</span>
+              <span className="section-desc">Placeholder Counter</span>
             </article>
             <article className="sci-panel sci-panel--interactive pub-metric-card">
-              <span className="foundation-box__label">Avg Rating (Demo)</span>
+              <span className="foundation-box__label">Avg Rating (Sample)</span>
               <span className="pub-metric-val">4.9★</span>
-              <span className="section-desc">Approved Reviews Only</span>
+              <span className="section-desc">Demo Preview Only</span>
             </article>
           </section>
 
           {activeTab === 'deck' && (
-            <section className="sci-panel admin-table-card sci-reveal" aria-label="Publisher Listings">
+            <section className="sci-panel admin-table-card sci-reveal" aria-label="Publisher Demo Listings">
               <div className="foundation-card__header">
-                <h2 className="section-title">Submitted Listings &amp; Approval Status</h2>
+                <h2 className="section-title">Sample Listings &amp; Approval States (Demo)</h2>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={() => setActiveTab('submit')}
                 >
-                  Open Submission Deck
+                  Open Submission Form Preview
                 </button>
               </div>
               {DEMO_PUBLISHER_POSTS.map((post) => (
@@ -123,11 +123,14 @@ export default function PublisherDashboardPage() {
                   <div>
                     <strong>{post.title}</strong>
                     <p className="section-desc">
-                      {post.type} • Views: {post.views.toLocaleString()} • Rating: {post.rating}
+                      {post.type} • Demo Views: {post.views.toLocaleString()} • Demo Rating:{' '}
+                      {post.rating}
                     </p>
                   </div>
                   <div className="admin-row__actions">
-                    <span className={`hud-chip ${post.status === 'Pending' ? 'hud-chip--warn' : ''}`}>
+                    <span
+                      className={`hud-chip ${post.status.includes('Pending') ? 'hud-chip--warn' : ''}`}
+                    >
                       {post.status}
                     </span>
                     <span className="hud-chip hud-chip--cyan">{post.revisionStatus}</span>
@@ -136,7 +139,7 @@ export default function PublisherDashboardPage() {
                       className="btn btn-secondary"
                       onClick={() => setActiveTab('revisions')}
                     >
-                      Inspect Revision
+                      Preview Revision UI
                     </button>
                   </div>
                 </div>
@@ -145,7 +148,7 @@ export default function PublisherDashboardPage() {
           )}
 
           {activeTab === 'submit' && (
-            <section className="pub-split sci-reveal" aria-label="Listing Submission Studio">
+            <section className="pub-split sci-reveal" aria-label="Listing Submission Studio Preview">
               <form
                 className="sci-panel pub-form"
                 onSubmit={(e) => {
@@ -153,8 +156,8 @@ export default function PublisherDashboardPage() {
                 }}
               >
                 <div className="foundation-card__header">
-                  <h2 className="section-title">Submit App / Website</h2>
-                  <span className="hud-chip hud-chip--warn">DEFAULT STATUS: PENDING</span>
+                  <h2 className="section-title">Submit App / Website (UI Preview)</h2>
+                  <span className="hud-chip hud-chip--warn">PLANNED DEFAULT: PENDING</span>
                 </div>
                 <div className="pub-field">
                   <label className="pub-label" htmlFor="pub-title">
@@ -196,7 +199,7 @@ export default function PublisherDashboardPage() {
                 </div>
                 <div className="pub-field">
                   <label className="pub-label" htmlFor="pub-url">
-                    Official HTTPS URL
+                    Sample HTTPS URL
                   </label>
                   <input
                     id="pub-url"
@@ -217,13 +220,13 @@ export default function PublisherDashboardPage() {
                   />
                 </div>
                 <p className="telemetry-note">
-                  Backend submission API &amp; verified publisher permission checks connect in
-                  Milestone 2C.
+                  Local draft preview only. Backend submission API and publisher permission
+                  verification will connect in Milestone 2C.
                 </p>
               </form>
 
-              <aside className="sci-panel pub-preview-card" aria-label="Live Orbital Card Preview">
-                <span className="hud-chip">LIVE HOLOGRAPHIC PREVIEW</span>
+              <aside className="sci-panel pub-preview-card" aria-label="Local Draft Card Preview">
+                <span className="hud-chip">LOCAL DRAFT PREVIEW (NOT SAVED)</span>
                 <div className="foundation-box">
                   <span className="cyber-badge cyber-badge--muted">
                     {draftType === 'app' ? 'ANDROID APP' : 'WEBSITE'} • {draftCategory}
@@ -232,52 +235,50 @@ export default function PublisherDashboardPage() {
                     {draftTitle || 'Untitled Listing'}
                   </h3>
                   <p className="section-desc">{draftTagline}</p>
-                  <span className="telemetry-note">Target: {draftUrl}</span>
+                  <span className="telemetry-note">Sample Domain: {draftUrl}</span>
                 </div>
                 <Link to="/nexora" className="btn btn-secondary">
-                  Ask NEXORA About Submission Rules
+                  Open NEXORA UI Preview
                 </Link>
               </aside>
             </section>
           )}
 
           {activeTab === 'revisions' && (
-            <section className="foundation-grid sci-reveal" aria-label="Revision Comparison">
+            <section className="foundation-grid sci-reveal" aria-label="Sample Revision Comparison">
               <div className="sci-panel pub-preview-card">
-                <span className="hud-chip">CURRENTLY PUBLIC (APPROVED)</span>
-                <h3>AegisGrid Vault v1.0</h3>
+                <span className="hud-chip">SAMPLE PUBLIC VERSION (DEMO)</span>
+                <h3>AegisGrid Vault v1.0 (Demo)</h3>
                 <p className="section-desc">
-                  This live version stays visible to Guest users until Admin approves your pending
-                  edit revision.
+                  Demonstrates the planned revision behavior: an approved version remains visible to
+                  guests until Admin approves the pending edit.
                 </p>
               </div>
               <div className="sci-panel pub-preview-card">
-                <span className="hud-chip hud-chip--warn">PENDING REVISION</span>
-                <h3>AegisGrid Vault v1.1 (Draft Edit)</h3>
+                <span className="hud-chip hud-chip--warn">SAMPLE PENDING REVISION (DEMO)</span>
+                <h3>AegisGrid Vault v1.1 (Demo Edit)</h3>
                 <p className="section-desc">
-                  Updated changelog and security notes queued for Admin Approval Center review.
+                  Sample pending edit card. Real revision storage and moderation will connect in
+                  Milestone 2C.
                 </p>
               </div>
             </section>
           )}
 
           {activeTab === 'analytics' && (
-            <section className="sci-panel admin-table-card sci-reveal" aria-label="Publisher Analytics">
+            <section className="sci-panel admin-table-card sci-reveal" aria-label="Sample Publisher Analytics">
               <div className="foundation-card__header">
-                <h2 className="section-title">Listing Velocity &amp; Rating Telemetry (Demo)</h2>
-                <span className="hud-chip">OWN LISTINGS ONLY</span>
+                <h2 className="section-title">Sample Velocity Chart (Static Demo)</h2>
+                <span className="hud-chip hud-chip--warn">D1 ANALYTICS PENDING 2C</span>
               </div>
               <div className="sparkline-bars" aria-hidden="true">
                 {SPARKLINE_HEIGHTS.map((height, idx) => (
-                  <div
-                    key={idx}
-                    className="sparkline-bar"
-                    style={{ height: `${height}%` }}
-                  />
+                  <div key={idx} className="sparkline-bar" style={{ height: `${height}%` }} />
                 ))}
               </div>
               <p className="telemetry-note">
-                Real per-listing views, rating distribution, and D1 analytics connect in Milestone 2C.
+                Placeholder sparkline only. Real per-listing D1 analytics will connect in Milestone
+                2C.
               </p>
             </section>
           )}
