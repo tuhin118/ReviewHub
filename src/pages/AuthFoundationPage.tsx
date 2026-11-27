@@ -25,9 +25,9 @@ export default function AuthFoundationPage({ mode }: AuthFoundationPageProps) {
 
           <h1 className="foundation-title">{titleMap[mode]}</h1>
           <p className="foundation-subtitle">
-            এই রুটের চূড়ান্ত UI/UX Design (ChatGPT-নির্ধারিত) এবং Server-side Authentication,
-            Turnstile, OTP ও Session Management পরবর্তী Part 02-তে যুক্ত করা হবে। Part 01-এ
-            শুধুমাত্র নিরাপদ রাউটিং কাঠামো প্রস্তুত করা হয়েছে।
+            The final UI/UX design for this route (specified by ChatGPT) along with server-side
+            authentication, Turnstile, OTP, and session management will be implemented in Part 02.
+            Only the route foundation is prepared in Part 01.
           </p>
 
           <div className="foundation-actions">
