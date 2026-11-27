@@ -1,0 +1,19 @@
+{
+  "name": "ReviewHub — Discover. Review. Trust.",
+  "short_name": "ReviewHub",
+  "description": "App and Website Review Intelligence Platform.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#030605",
+  "theme_color": "#00ff88",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
