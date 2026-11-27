@@ -13,7 +13,7 @@ export default function NotFoundPage() {
           </div>
           <h1 className="foundation-title">Route Not Found</h1>
           <p className="foundation-subtitle">
-            আপনি যে ঠিকানাটি খুঁজছেন তা ReviewHub-এ পাওয়া যায়নি।
+            The address you are looking for could not be found on ReviewHub.
           </p>
           <div className="foundation-actions">
             <Link to="/" className="btn btn-primary">
