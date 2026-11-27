@@ -17,7 +17,9 @@ export function TopRatedSection({ items, onSelectItem }: TopRatedSectionProps) {
               Top Rated List
             </h2>
           </div>
-          <p className="section-desc">সর্বোচ্চ নমুনা রেটিং ও রিভিউয়ের ভিত্তিতে শীর্ষ ডেমো অ্যাপ ও ওয়েবসাইট।</p>
+          <p className="section-desc">
+            Top demo apps and websites ranked by sample rating and review count.
+          </p>
         </div>
 
         <div className="top-rated-list">
@@ -49,7 +51,7 @@ export function TopRatedSection({ items, onSelectItem }: TopRatedSectionProps) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  aria-label={`${item.name} প্রিভিউ দেখুন`}
+                  aria-label={`Inspect preview for ${item.name}`}
                   style={{ padding: '0.45rem 0.9rem', fontSize: '0.84rem' }}
                   onClick={() => onSelectItem(item)}
                 >
