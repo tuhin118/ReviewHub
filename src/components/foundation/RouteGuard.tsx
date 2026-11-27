@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { UserRole } from '../../types/api';
 
 interface RouteGuardProps {
   requiredRole: Exclude<UserRole, 'guest'>;
   currentRole?: UserRole;
+  allowUiPreview?: boolean;
   children: ReactNode;
 }
 
@@ -18,9 +19,12 @@ const ROLE_LEVEL: Record<UserRole, number> = {
 export function RouteGuard({
   requiredRole,
   currentRole = 'guest',
+  allowUiPreview = false,
   children,
 }: RouteGuardProps) {
-  if (ROLE_LEVEL[currentRole] >= ROLE_LEVEL[requiredRole]) {
+  const [previewUnlocked, setPreviewUnlocked] = useState(false);
+
+  if (ROLE_LEVEL[currentRole] >= ROLE_LEVEL[requiredRole] || (allowUiPreview && previewUnlocked)) {
     return <>{children}</>;
   }
 
@@ -37,13 +41,21 @@ export function RouteGuard({
 
           <h1 className="foundation-title">Authentication Required</h1>
           <p className="foundation-subtitle">
-            This section ({requiredRole} access) is prepared as a route foundation in Part 01. Once
-            server-side authentication and backend role verification are implemented in Part 02,
-            only authorized accounts will be able to access this route.
+            This route requires backend-verified <strong>{requiredRole}</strong> authorization.
+            Server-side authentication and RBAC guards will be connected in Milestones 2B–2C.
           </p>
 
           <div className="foundation-actions">
-            <Link to="/login" className="btn btn-primary">
+            {allowUiPreview && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setPreviewUnlocked(true)}
+              >
+                Inspect Milestone 2A UI Shell (Preview Only)
+              </button>
+            )}
+            <Link to="/login" className="btn btn-secondary">
               Go to Login Route
             </Link>
             <Link to="/" className="btn btn-secondary">
