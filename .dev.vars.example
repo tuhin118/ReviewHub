@@ -1,0 +1,11 @@
+# Copy this file to .dev.vars for local development only.
+# NEVER commit .dev.vars or real secrets to GitHub.
+
+ENVIRONMENT="development"
+APP_NAME="ReviewHub"
+
+# Reserved for Part 02+ (do not put real values in .dev.vars.example)
+# TURNSTILE_SECRET_KEY=""
+# SESSION_SECRET=""
+# TOTP_ENCRYPTION_KEY=""
+# GOOGLE_CLIENT_ID=""
