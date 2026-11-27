@@ -10,9 +10,9 @@ export function Footer() {
               Review<span>Hub</span>
             </div>
             <p className="section-desc" style={{ maxWidth: '42ch' }}>
-              Discover. Review. Trust. Android অ্যাপ ও ওয়েবসাইটের নির্ভরযোগ্য তথ্য, ১–৫ স্টার রেটিং
-              এবং কমিউনিটি রিভিউ প্ল্যাটফর্ম। Guest ব্যবহারকারীরা লগইন ছাড়াই সব পাবলিক কন্টেন্ট দেখতে
-              পারবেন।
+              Discover. Review. Trust. A reliable intelligence platform for Android apps and
+              websites with 1–5 star ratings and community reviews. Guests can browse all public
+              content without logging in.
             </p>
           </div>
 
