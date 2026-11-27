@@ -36,8 +36,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </div>
               <h1 className="foundation-title">Something went wrong</h1>
               <p className="foundation-subtitle">
-                পৃষ্ঠাটি রেন্ডার করার সময় একটি অপ্রত্যাশিত ত্রুটি হয়েছে। অনুগ্রহ করে হোমপেজে ফিরে যান
-                অথবা পৃষ্ঠাটি রিলোড করুন।
+                An unexpected error occurred while rendering this page. Please return to the
+                homepage or reload the page.
               </p>
               <div className="foundation-actions">
                 <button type="button" className="btn btn-primary" onClick={this.handleReload}>
