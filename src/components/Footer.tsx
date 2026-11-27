@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export function Footer() {
   return (
     <footer className="site-footer">
@@ -8,29 +10,31 @@ export function Footer() {
               Review<span>Hub</span>
             </div>
             <p className="section-desc" style={{ maxWidth: '42ch' }}>
-              Android অ্যাপ ও ওয়েবসাইটের নির্ভরযোগ্য তথ্য, ১–৫ স্টার রেটিং এবং কমিউনিটি রিভিউ প্ল্যাটফর্ম।
-              Guest ব্যবহারকারীরা লগইন ছাড়াই সব পাবলিক কন্টেন্ট দেখতে পারবেন।
+              Discover. Review. Trust. Android অ্যাপ ও ওয়েবসাইটের নির্ভরযোগ্য তথ্য, ১–৫ স্টার রেটিং
+              এবং কমিউনিটি রিভিউ প্ল্যাটফর্ম। Guest ব্যবহারকারীরা লগইন ছাড়াই সব পাবলিক কন্টেন্ট দেখতে
+              পারবেন।
             </p>
           </div>
 
           <div>
-            <h3 className="footer-heading">Homepage Sections</h3>
+            <h3 className="footer-heading">Explore</h3>
             <div className="footer-links">
-              <a href="#top">Search &amp; Overview</a>
-              <a href="#trending">Trending Apps &amp; Websites</a>
-              <a href="#categories">Categories</a>
-              <a href="#featured">Featured Discovery</a>
-              <a href="#top-rated">Top Rated List</a>
+              <Link to="/">Home</Link>
+              <Link to="/apps">Android Apps</Link>
+              <Link to="/websites">Websites</Link>
+              <Link to="/categories">Categories</Link>
+              <Link to="/search">Search</Link>
             </div>
           </div>
 
           <div>
-            <h3 className="footer-heading">Platform Status</h3>
+            <h3 className="footer-heading">Platform &amp; Policy</h3>
             <div className="footer-links">
-              <span>Frontend Phase: Homepage UI</span>
-              <span>Data Mode: Static Demo Catalog</span>
-              <span>Theme: Black + Neon Green</span>
-              <span>Guest Access: Active</span>
+              <Link to="/about">About ReviewHub</Link>
+              <Link to="/support">Help &amp; Support</Link>
+              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/terms">Terms of Service</Link>
+              <span>Phase: Part 01 Foundation</span>
             </div>
           </div>
         </div>
