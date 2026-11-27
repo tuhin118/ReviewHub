@@ -32,7 +32,7 @@ export function FeaturedSection({
             </h2>
           </div>
           <p className="section-desc" aria-live="polite" aria-atomic="true">
-            {items.length} টি ফলাফল প্রদর্শিত হচ্ছে (Static Demo Catalog)
+            Showing {items.length} {items.length === 1 ? 'result' : 'results'} (Static Demo Catalog)
           </p>
         </div>
 
@@ -48,7 +48,9 @@ export function FeaturedSection({
               <span className="cyber-badge cyber-badge--muted">{selectedCategoryLabel}</span>
             )}
             {searchQuery.trim() && (
-              <span className="cyber-badge cyber-badge--muted">Query: &ldquo;{searchQuery.trim()}&rdquo;</span>
+              <span className="cyber-badge cyber-badge--muted">
+                Query: &ldquo;{searchQuery.trim()}&rdquo;
+              </span>
             )}
             <button
               type="button"
@@ -63,9 +65,9 @@ export function FeaturedSection({
 
         {items.length === 0 ? (
           <div className="glass-panel empty-state">
-            <h3>কোনো মিল পাওয়া যায়নি</h3>
+            <h3>No matches found</h3>
             <p className="section-desc">
-              আপনার Search বা Category ফিল্টারের সাথে কোনো ডেমো অ্যাপ/ওয়েবসাইট মেলেনি।
+              No demo apps or websites matched your search or category filter.
             </p>
             <button type="button" className="btn btn-primary" onClick={onResetFilters}>
               Clear All Filters
