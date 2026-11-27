@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage';
 const FoundationRoutePage = lazy(() => import('./pages/FoundationRoutePage'));
 const AuthFoundationPage = lazy(() => import('./pages/AuthFoundationPage'));
 const ProtectedRouteShell = lazy(() => import('./pages/ProtectedRouteShell'));
+const NexoraAssistantPage = lazy(() => import('./pages/NexoraAssistantPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function ScrollManager() {
@@ -38,21 +39,23 @@ export default function App() {
             <Route path="/search" element={<FoundationRoutePage mode="search" />} />
             <Route path="/listings/:slug" element={<FoundationRoutePage mode="listing-detail" />} />
             <Route path="/profiles/:username" element={<FoundationRoutePage mode="public-profile" />} />
+            <Route path="/nexora" element={<NexoraAssistantPage />} />
             <Route path="/about" element={<FoundationRoutePage mode="about" />} />
             <Route path="/support" element={<FoundationRoutePage mode="support" />} />
             <Route path="/privacy" element={<FoundationRoutePage mode="privacy" />} />
             <Route path="/terms" element={<FoundationRoutePage mode="terms" />} />
 
-            {/* Auth Route Foundations (UI & Backend Auth in Part 02) */}
+            {/* Auth Route Foundations (UI & Backend Auth Reserved) */}
             <Route path="/login" element={<AuthFoundationPage mode="login" />} />
             <Route path="/register" element={<AuthFoundationPage mode="register" />} />
             <Route path="/forgot-password" element={<AuthFoundationPage mode="forgot-password" />} />
 
-            {/* Authenticated, Publisher & Admin Route Structures */}
+            {/* Protected & Admin/AI Route Structures */}
             <Route path="/dashboard" element={<ProtectedRouteShell area="dashboard" />} />
             <Route path="/settings" element={<ProtectedRouteShell area="settings" />} />
             <Route path="/publisher" element={<ProtectedRouteShell area="publisher" />} />
             <Route path="/admin" element={<ProtectedRouteShell area="admin" />} />
+            <Route path="/admin/xelvor" element={<ProtectedRouteShell area="xelvor" />} />
 
             {/* 404 Not Found */}
             <Route path="*" element={<NotFoundPage />} />
