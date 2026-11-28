@@ -127,13 +127,13 @@ export function HeroSection({
               <span>STATIC DEMO</span>
             </div>
 
-            <svg className="hero-wave-svg" viewBox="0 0 280 32" aria-hidden="true">
+            <svg className="hero-wave-svg" viewBox="0 0 280 28" aria-hidden="true">
               <path
-                d="M0 22 L32 22 L44 10 L58 26 L74 14 L92 14 L106 6 L122 24 L142 16 L180 16 L194 8 L210 24 L228 14 L280 14"
+                d="M0 19 L34 19 L46 8 L60 22 L76 12 L94 12 L108 5 L124 21 L144 14 L182 14 L196 7 L212 21 L230 12 L280 12"
                 fill="none"
                 stroke="#20ff9a"
-                strokeWidth="1.6"
-                strokeOpacity="0.85"
+                strokeWidth="1.5"
+                strokeOpacity="0.9"
               />
             </svg>
 
