@@ -6,6 +6,7 @@ import './styles/global.css';
 import './styles/homepage.css';
 import './styles/foundation.css';
 import './styles/scifi-environments.css';
+import './styles/admin-foundation.css';
 import App from './App';
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
