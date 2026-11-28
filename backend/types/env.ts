@@ -4,6 +4,7 @@ export interface Env {
   APP_NAME?: string;
   TURNSTILE_SECRET_KEY?: string;
   PASSWORD_PEPPER?: string;
+  ADMIN_BOOTSTRAP_SECRET?: string;
 }
 
 export interface AuthenticatedUser {
