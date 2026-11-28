@@ -1,6 +1,6 @@
-
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { CyberEarth } from '../components/auth/CyberEarth';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import '../styles/auth.css';
@@ -82,39 +82,51 @@ export default function AuthFoundationPage({ mode }: AuthFoundationPageProps) {
       <Navbar />
 
       <main className="auth-page">
+        {/* Layered Cinematic Backdrop (Augments Global CyberBackground) */}
+        <div className="auth-atmosphere" aria-hidden="true">
+          <div className="auth-atmosphere__emerald" />
+          <div className="auth-atmosphere__streams" />
+          <div className="auth-atmosphere__particles" />
+          <div className="auth-atmosphere__scan" />
+        </div>
+
         <div className="auth-layout">
-          <section className="auth-story">
-            <div className="auth-eyebrow">
-              <span className="auth-eyebrow__dot" />
-              REVIEWHUB COMMUNITY NETWORK
-            </div>
+          <section className="auth-visual-column" aria-label="ReviewHub Global Intelligence Network">
+            <CyberEarth mode={mode} />
 
-            <h1>
-              Discover more.
-              <br />
-              Review with <span>confidence.</span>
-            </h1>
-
-            <p className="auth-story__copy">
-              Explore apps and websites, share honest experiences,
-              and help people make better digital decisions.
-              Your next trusted discovery starts here.
-            </p>
-
-            <div className="auth-signal-list">
-              <div className="auth-signal">
-                <span className="auth-signal__icon"><ShieldIcon /></span>
-                <span>Community-driven reviews and discovery</span>
+            <div className="auth-story">
+              <div className="auth-eyebrow">
+                <span className="auth-eyebrow__dot" />
+                REVIEWHUB COMMUNITY NETWORK
               </div>
-              <div className="auth-signal">
-                <span className="auth-signal__icon"><StarIcon /></span>
-                <span>Meaningful ratings from real experiences</span>
-              </div>
-            </div>
 
-            <div className="auth-story__coordinates">
-              <span>RH // COMMUNITY ACCESS</span>
-              <span>NETWORK STATUS: <b>READY</b></span>
+              <h1>
+                Discover more.
+                <br />
+                Review with <span>confidence.</span>
+              </h1>
+
+              <p className="auth-story__copy">
+                Explore apps and websites, share honest experiences,
+                and help people make better digital decisions.
+                Your next trusted discovery starts here.
+              </p>
+
+              <div className="auth-signal-list">
+                <div className="auth-signal">
+                  <span className="auth-signal__icon"><ShieldIcon /></span>
+                  <span>Community-driven reviews and discovery</span>
+                </div>
+                <div className="auth-signal">
+                  <span className="auth-signal__icon"><StarIcon /></span>
+                  <span>Meaningful ratings from real experiences</span>
+                </div>
+              </div>
+
+              <div className="auth-story__coordinates">
+                <span>RH // COMMUNITY ACCESS</span>
+                <span>NETWORK STATUS: <b>READY</b></span>
+              </div>
             </div>
           </section>
 
