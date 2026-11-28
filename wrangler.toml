@@ -1,4 +1,3 @@
-
 name = "reviewhub"
 compatibility_date = "2026-11-01"
 pages_build_output_dir = "dist"
@@ -6,3 +5,7 @@ pages_build_output_dir = "dist"
 [vars]
 ENVIRONMENT = "production"
 APP_NAME = "ReviewHub"
+
+# Configure the D1 binding ("DB" -> "reviewhub-db") in Cloudflare Pages Dashboard:
+# Settings -> Bindings -> Add -> D1 database binding
+# (Or add [[d1_databases]] here ONLY after creating the DB and inserting the real database_id.)
