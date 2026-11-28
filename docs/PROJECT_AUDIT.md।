@@ -1,0 +1,260 @@
+ReviewHub — Project Audit
+
+Project Information
+
+- Project: ReviewHub
+- Repository: tuhin118/ReviewHub
+- Branch: main
+- Hosting: Cloudflare Pages
+- Live Preview: https://reviewhub-8lg.pages.dev/
+- Project Type: App and Website Review Platform
+- Budget: 100% Free Services Only
+- Audit Phase: Phase 0
+
+---
+
+1. Project Vision
+
+ReviewHub is a free platform where users can discover applications and websites, read reviews, submit ratings and share their experiences.
+
+The platform must support guest browsing without mandatory registration.
+
+The primary priorities are:
+
+1. Premium Design
+2. Strong Security
+3. Reliable Functionality
+4. Cinematic Video Animation
+5. 3D Holographic Effects
+6. Mobile Performance
+7. Zero-Cost Infrastructure
+
+No priority should be sacrificed casually.
+
+2. User Roles
+
+Guest
+
+- Browse public listings.
+- Search applications and websites.
+- Read approved reviews.
+- View public profiles.
+
+Authenticated User
+
+- Submit reviews.
+- Edit personal reviews.
+- Vote helpful.
+- Report content.
+- Save listings.
+- Manage account settings.
+
+Verified Publisher
+
+- Create listings.
+- Manage owned listings.
+- Submit listing updates.
+- View publisher analytics.
+
+Publisher access must be granted by an administrator.
+
+Administrator
+
+- Manage users.
+- Manage publishers.
+- Moderate listings and reviews.
+- Manage bans and permissions.
+- Review security events.
+- Manage platform settings.
+
+Administrator access must never be self-assigned.
+
+3. Existing Repository Baseline
+
+Previously inspected:
+
+- 68 tracked files.
+- 27 directories.
+- React 19.
+- TypeScript.
+- Vite.
+- Cloudflare Pages.
+- Pages Functions.
+- D1 database integration foundation.
+
+These are baseline observations, not a complete production verification.
+
+4. Existing Routes
+
+Public:
+
+- /
+- /apps
+- /websites
+- /categories
+- /search
+- /listings/:slug
+- /profiles/:username
+- /nexora
+- /about
+- /support
+- /privacy
+- /terms
+
+Authentication:
+
+- /login
+- /register
+- /forgot-password
+
+Protected:
+
+- /dashboard
+- /settings
+- /publisher
+- /admin
+- /admin/xelvor
+
+5. Existing Technical Observations
+
+- API client uses "/api/v1".
+- API requests include credentials.
+- Backend expects a D1 binding named "DB".
+- Database client uses prepared statements.
+- Health endpoint exists.
+- Initial migration defines users, allowed_email_domains, categories, listings and audit_logs.
+- Complete production D1 binding status is not yet verified.
+
+6. Known Implementation Gaps
+
+Previously inspected source files indicate:
+
+- Authentication forms are not yet connected to a complete authentication flow.
+- User dashboard contains preview data.
+- Publisher dashboard contains preview data.
+- Admin center contains preview data.
+- NEXORA is currently a static assistant preview.
+- XELVOR is currently a static demo.
+- Frontend route guards require corresponding backend authorization.
+- Database migrations need expansion.
+
+These findings must be confirmed during the final full audit.
+
+7. Required Database Modules
+
+- Users
+- Sessions
+- Email verification
+- Categories
+- Listings
+- Listing revisions
+- Reviews
+- Review revisions
+- Helpful votes
+- Reports
+- Saved listings
+- Notifications
+- Support tickets
+- Bans
+- Permissions
+- Audit logs
+
+8. Security Requirements
+
+- Secure password hashing.
+- Secure session management.
+- Backend authorization.
+- CSRF protection.
+- XSS protection.
+- SQL injection protection.
+- Rate limiting.
+- Email verification.
+- Session revocation.
+- Upload validation.
+- Security event logging.
+- Admin step-up authentication.
+
+Five failed password attempts must trigger a 15-minute lock.
+
+During the lock, even a correct password must not bypass the lock.
+
+9. Design Requirements
+
+Design direction:
+
+Premium Hybrid Sci-Fi Cinematic Interface.
+
+Visual language:
+
+- Deep black background.
+- Dark emerald surfaces.
+- Neon green primary accent.
+- Restrained cyan accents.
+- Glassmorphism.
+- Angular sci-fi frames.
+- Cinematic lighting.
+- 3D holographic panels.
+- Layered depth.
+- Subtle parallax.
+- Data streams.
+- Smooth transitions.
+
+No human or AI-generated human imagery.
+
+Mobile-first performance and reduced-motion support are mandatory.
+
+10. Infrastructure Requirements
+
+Preferred services:
+
+- Cloudflare Pages.
+- Cloudflare Pages Functions.
+- Cloudflare D1.
+- Cloudflare R2.
+- Cloudflare Turnstile.
+- GitHub.
+- Optional Gemini free API quota.
+
+No paid services or automatic paid fallbacks.
+
+Free-tier limits must be checked before implementation.
+
+11. Audit Status
+
+Area| Status
+Repository baseline| Inspected
+Routes| Partially inspected
+API client| Inspected
+Database foundation| Inspected
+Complete database| Pending
+Authentication| Pending
+Backend authorization| Pending
+Upload security| Pending
+Production bindings| Unverified
+Complete deployment audit| Pending
+Full design audit| Pending
+
+12. Phase 0 Completion Conditions
+
+Phase 0 is complete when:
+
+1. Existing project architecture is documented.
+2. Database architecture is specified.
+3. API architecture is specified.
+4. Security requirements are documented.
+5. Design requirements are documented.
+6. Deployment architecture is documented.
+7. All development phases are planned.
+8. Gemini receives a complete project context.
+
+13. Change-Control Policy
+
+No repository files may be created, edited or deleted by an automated assistant without explicit user authorization.
+
+All implementation instructions must specify exact file paths and complete replacement content where applicable.
+
+---
+
+Document: PROJECT_AUDIT.md
+Status: Initial Audit Baseline
+Next: MASTER_ARCHITECTURE.md
