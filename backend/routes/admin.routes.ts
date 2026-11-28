@@ -1,8 +1,29 @@
 import { createDbClient } from '../db/client';
 import { getPhase1FoundationCounts } from '../db/queries/admin.queries';
+import {
+  claimBootstrapSlot,
+  createBootstrappedSuperAdminAtomically,
+  releaseBootstrapSlot,
+} from '../db/queries/auth.queries';
+import { recordAuditLog, recordSecurityEvent } from '../db/queries/security.queries';
+import { constantTimeStringDigestEqual, hashPassword } from '../lib/crypto';
+import {
+  ForbiddenError,
+  ServiceUnavailableError,
+  ValidationError,
+} from '../lib/errors';
 import { jsonSuccess } from '../lib/response';
 import type { ApiRouter } from '../lib/router';
-import { requireAdminPermission } from '../middleware/auth';
+import {
+  normalizeEmail,
+  parseJsonBody,
+  validatePasswordInput,
+} from '../lib/validation';
+import {
+  assertSameOriginMutation,
+  getClientIp,
+  requireAdminPermission,
+} from '../middleware/auth';
 
 const ADMIN_MODULES_READINESS = [
   { id: 1, key: 'dashboard', permission: 'module.dashboard', status: 'foundation_ready' },
@@ -29,6 +50,13 @@ const ADMIN_MODULES_READINESS = [
   { id: 22, key: 'email_domain_management', permission: 'module.email_domains', status: 'foundation_ready' },
 ] as const;
 
+interface BootstrapPayload {
+  name?: unknown;
+  email?: unknown;
+  password?: unknown;
+  bootstrapSecret?: unknown;
+}
+
 export function registerAdminRoutes(router: ApiRouter): void {
   router.get('/api/v1/admin/foundation-status', async (ctx) => {
     const db = createDbClient(ctx.env.DB);
@@ -42,6 +70,99 @@ export function registerAdminRoutes(router: ApiRouter): void {
         modules: ADMIN_MODULES_READINESS,
       },
       ctx.requestId,
+    );
+  });
+
+  router.post('/api/v1/admin/bootstrap', async (ctx) => {
+    assertSameOriginMutation(ctx.request, ctx.url);
+
+    if (!ctx.env.ADMIN_BOOTSTRAP_SECRET || ctx.env.ADMIN_BOOTSTRAP_SECRET.length < 24) {
+      throw new ServiceUnavailableError('Admin bootstrap is not enabled');
+    }
+
+    const db = createDbClient(ctx.env.DB);
+    const ip = getClientIp(ctx.request);
+    const body = await parseJsonBody<BootstrapPayload>(ctx.request);
+
+    const headerSecret = ctx.request.headers.get('X-Bootstrap-Secret');
+    const providedSecret =
+      typeof headerSecret === 'string' && headerSecret.length > 0
+        ? headerSecret
+        : typeof body.bootstrapSecret === 'string'
+          ? body.bootstrapSecret
+          : '';
+
+    const secretMatches =
+      providedSecret.length > 0 &&
+      (await constantTimeStringDigestEqual(providedSecret, ctx.env.ADMIN_BOOTSTRAP_SECRET));
+
+    if (!secretMatches) {
+      await recordSecurityEvent(db, {
+        eventType: 'ADMIN_BOOTSTRAP_DENIED',
+        severity: 'high',
+        ipAddress: ip,
+        endpoint: ctx.url.pathname,
+      });
+      throw new ForbiddenError('Invalid bootstrap credentials');
+    }
+
+    if (typeof body.name !== 'string' || body.name.trim().length < 2 || body.name.trim().length > 80) {
+      throw new ValidationError('Valid admin name is required');
+    }
+
+    const name = body.name.trim();
+    const email = normalizeEmail(body.email);
+    const password = validatePasswordInput(body.password);
+
+    // Atomically claim the single-use bootstrap slot before creating the admin
+    const claimed = await claimBootstrapSlot(db);
+    if (!claimed) {
+      throw new ForbiddenError('Initial Super Admin bootstrap has already been completed');
+    }
+
+    const adminId = crypto.randomUUID();
+    const username = `admin_${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`;
+    const passwordHash = await hashPassword(password, ctx.env.PASSWORD_PEPPER);
+
+    try {
+      await createBootstrappedSuperAdminAtomically(db, {
+        userId: adminId,
+        name,
+        username,
+        email,
+        passwordHash,
+      });
+    } catch (error) {
+      await releaseBootstrapSlot(db);
+      throw error;
+    }
+
+    await recordAuditLog(db, {
+      actorUserId: adminId,
+      action: 'ADMIN_BOOTSTRAP_COMPLETED',
+      targetType: 'system_bootstrap',
+      targetId: adminId,
+      ipAddress: ip,
+      metadata: { role: 'role_super_admin' },
+    });
+
+    await recordSecurityEvent(db, {
+      eventType: 'ADMIN_BOOTSTRAP_COMPLETED',
+      severity: 'info',
+      userId: adminId,
+      ipAddress: ip,
+      endpoint: ctx.url.pathname,
+    });
+
+    return jsonSuccess(
+      {
+        bootstrapped: true,
+        adminId,
+        assignedRole: 'super_admin',
+        nextAction: 'Remove ADMIN_BOOTSTRAP_SECRET from Cloudflare environment secrets.',
+      },
+      ctx.requestId,
+      201,
     );
   });
 }
