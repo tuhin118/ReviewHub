@@ -1,6 +1,7 @@
 const PBKDF2_ITERATIONS = 100_000;
 const SALT_BYTES = 16;
-const HASH_BITS = 256;
+const HASH_BYTES = 32;
+const HASH_BITS = HASH_BYTES * 8;
 
 function toBase64Url(bytes: Uint8Array): string {
   let binary = '';
@@ -29,6 +30,15 @@ export function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0;
 }
 
+export async function constantTimeStringDigestEqual(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [digestA, digestB] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(a)),
+    crypto.subtle.digest('SHA-256', encoder.encode(b)),
+  ]);
+  return constantTimeEqual(new Uint8Array(digestA), new Uint8Array(digestB));
+}
+
 export function generateSecureToken(byteLength = 32): string {
   const bytes = new Uint8Array(byteLength);
   crypto.getRandomValues(bytes);
@@ -44,7 +54,7 @@ export async function sha256Hex(value: string): Promise<string> {
 
 async function derivePbkdf2Bits(
   password: string,
-  salt: Uint8Array,
+  saltBytes: Uint8Array,
   iterations: number,
   pepper?: string,
 ): Promise<Uint8Array> {
@@ -57,10 +67,13 @@ async function derivePbkdf2Bits(
     ['deriveBits'],
   );
 
+  const cleanSalt = new Uint8Array(saltBytes.length);
+  cleanSalt.set(saltBytes);
+
   const derived = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: salt as unknown as BufferSource,
+      salt: cleanSalt,
       iterations,
       hash: 'SHA-256',
     },
@@ -89,13 +102,16 @@ export async function verifyPassword(
   }
 
   const iterations = Number(parts[1]);
-  if (!Number.isInteger(iterations) || iterations < 10_000 || iterations > PBKDF2_ITERATIONS) {
+  if (!Number.isInteger(iterations) || iterations < PBKDF2_ITERATIONS || iterations > PBKDF2_ITERATIONS) {
     return false;
   }
 
   try {
     const salt = fromBase64Url(parts[2]);
     const expected = fromBase64Url(parts[3]);
+    if (salt.length !== SALT_BYTES || expected.length !== HASH_BYTES) {
+      return false;
+    }
     const actual = await derivePbkdf2Bits(password, salt, iterations, pepper);
     return constantTimeEqual(actual, expected);
   } catch {
