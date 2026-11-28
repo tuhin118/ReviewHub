@@ -34,7 +34,7 @@ export function HeroSection({
           <div>
             <div className="cyber-badge hero-eyebrow">
               <span className="live-dot" aria-hidden="true" />
-              GUEST-FIRST DISCOVERY // DEMO INDEX
+              CYBER COMMAND CENTER // DEMO INDEX
             </div>
 
             <h1 className="hero-title">
@@ -44,13 +44,13 @@ export function HeroSection({
 
             <p className="hero-subtitle">
               Explore Android apps and websites without logging in, compare 1–5 star ratings, and
-              read community reviews. Search below to discover the tools you need.
+              read community reviews. Search below to inspect tools immediately.
             </p>
 
             <form className="search-box" role="search" onSubmit={handleSubmit}>
               <div className="search-input-wrap">
                 <span className="search-icon" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="11" cy="11" r="7" />
                     <path d="M21 21l-4.35-4.35" />
                   </svg>
@@ -123,9 +123,19 @@ export function HeroSection({
 
           <aside className="hero-telemetry" aria-label="Platform Demo Telemetry">
             <div className="telemetry-head">
-              <span>SYSTEM TELEMETRY</span>
+              <span>SIGNAL TELEMETRY</span>
               <span>STATIC DEMO</span>
             </div>
+
+            <svg className="hero-wave-svg" viewBox="0 0 280 32" aria-hidden="true">
+              <path
+                d="M0 22 L32 22 L44 10 L58 26 L74 14 L92 14 L106 6 L122 24 L142 16 L180 16 L194 8 L210 24 L228 14 L280 14"
+                fill="none"
+                stroke="#20ff9a"
+                strokeWidth="1.6"
+                strokeOpacity="0.85"
+              />
+            </svg>
 
             <div className="telemetry-grid">
               <div className="telemetry-stat">
@@ -147,8 +157,8 @@ export function HeroSection({
             </div>
 
             <p className="telemetry-note">
-              All public listings, ratings, and reviews are viewable without login. All counts and
-              profiles shown are Static Demo Data.
+              All listings, ratings, and reviews shown here are Static Demo Data viewable without
+              login.
             </p>
           </aside>
         </div>
