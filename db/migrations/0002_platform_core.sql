@@ -1,6 +1,16 @@
 -- ReviewHub Phase 1 — Platform Core, Security & 22-Module Admin Foundation
 -- Compatible with 0001_foundation.sql (non-destructive, additive only)
 
+-- 0. Atomic One-Time Admin Bootstrap Guard (Singleton row id = 1)
+CREATE TABLE IF NOT EXISTS system_bootstrap (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  is_completed INTEGER NOT NULL DEFAULT 0 CHECK (is_completed IN (0, 1)),
+  bootstrapped_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  completed_at TEXT
+);
+
+INSERT OR IGNORE INTO system_bootstrap (id, is_completed) VALUES (1, 0);
+
 -- 1. User Profiles & Privacy Controls
 CREATE TABLE IF NOT EXISTS user_profiles (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -155,7 +165,11 @@ CREATE TABLE IF NOT EXISTS review_reports (
   status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'UnderReview', 'Resolved', 'Dismissed')),
   resolved_by_admin_id TEXT REFERENCES users(id) ON DELETE SET NULL,
   resolved_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  CHECK (
+    (target_type = 'listing' AND listing_id IS NOT NULL) OR
+    (target_type = 'review' AND review_id IS NOT NULL)
+  )
 );
 
 CREATE INDEX IF NOT EXISTS idx_reports_status_risk ON review_reports (status, risk_level, created_at);
@@ -319,6 +333,8 @@ CREATE TABLE IF NOT EXISTS backup_records (
   created_by_admin_id TEXT REFERENCES users(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_backup_records_created ON backup_records (created_at, status);
 
 -- Seed Default Admin Roles & 22 Module Permissions
 INSERT OR IGNORE INTO admin_roles (id, slug, name, description, is_system) VALUES
