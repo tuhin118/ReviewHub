@@ -3,6 +3,7 @@ import { Navbar } from '../components/Navbar';
 import { RouteGuard } from '../components/foundation/RouteGuard';
 import AdminCommandCenterPage from './AdminCommandCenterPage';
 import PublisherDashboardPage from './PublisherDashboardPage';
+import UserDashboardPage from './UserDashboardPage';
 import XelvorConsolePage from './XelvorConsolePage';
 
 interface ProtectedRouteShellProps {
@@ -12,6 +13,14 @@ interface ProtectedRouteShellProps {
 export default function ProtectedRouteShell({ area }: ProtectedRouteShellProps) {
   const requiredRole =
     area === 'publisher' ? 'publisher' : area === 'admin' || area === 'xelvor' ? 'admin' : 'user';
+
+  if (area === 'dashboard' || area === 'settings') {
+    return (
+      <RouteGuard requiredRole={requiredRole} allowUiPreview>
+        <UserDashboardPage area={area} />
+      </RouteGuard>
+    );
+  }
 
   if (area === 'publisher') {
     return (
@@ -44,7 +53,7 @@ export default function ProtectedRouteShell({ area }: ProtectedRouteShellProps) 
         <RouteGuard requiredRole={requiredRole}>
           <section className="container foundation-page">
             <div className="glass-panel foundation-card">
-              <h1 className="foundation-title">{area.toUpperCase()} Workspace</h1>
+              <h1 className="foundation-title">Workspace</h1>
             </div>
           </section>
         </RouteGuard>
