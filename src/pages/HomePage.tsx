@@ -3,6 +3,7 @@ import { CategoriesSection } from '../components/CategoriesSection';
 import { FeaturedSection } from '../components/FeaturedSection';
 import { Footer } from '../components/Footer';
 import { HeroSection } from '../components/HeroSection';
+import { HomepageBackdrop } from '../components/homepage/HomepageBackdrop';
 import { ItemPreviewModal } from '../components/ItemPreviewModal';
 import { Navbar } from '../components/Navbar';
 import { TopRatedSection } from '../components/TopRatedSection';
@@ -85,7 +86,9 @@ export default function HomePage() {
   };
 
   return (
-    <>
+    <div className="homepage-stage">
+      <HomepageBackdrop />
+
       <Navbar onFocusSearch={handleFocusSearch} />
 
       <main className="main-content">
@@ -122,6 +125,6 @@ export default function HomePage() {
       <Footer />
 
       <ItemPreviewModal item={selectedItem} onClose={() => setSelectedItem(null)} />
-    </>
+    </div>
   );
 }
