@@ -1,0 +1,67 @@
+/* ==========================================================================
+   ReviewHub — Reusable Admin Command Center Design Foundation
+   Hybrid Sci-Fi Cinematic Interface (Deep Black, Dark Emerald, Neon Green, Cyan)
+   ========================================================================== */
+
+.adm-shell-tokens {
+  --adm-bg: #020806;
+  --adm-surface: rgba(7, 20, 15, 0.88);
+  --adm-neon: #20ff9a;
+  --adm-cyan: #38d9ff;
+  --adm-border: rgba(56, 217, 255, 0.28);
+}
+
+.adm-stat-tile {
+  padding: 0.85rem 0.95rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.adm-stat-tile__label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.adm-stat-tile__value {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--neon-green);
+}
+
+.adm-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.adm-table th,
+.adm-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(32, 255, 154, 0.14);
+}
+
+.adm-table th {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #38d9ff;
+}
+
+.adm-toast {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(32, 255, 154, 0.35);
+  background: rgba(4, 15, 10, 0.94);
+  font-size: 0.84rem;
+}
