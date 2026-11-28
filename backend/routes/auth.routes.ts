@@ -1,13 +1,14 @@
 import { createDbClient } from '../db/client';
 import {
-  insertEmailVerificationToken,
+  completeEmailVerificationAtomically,
+  findEmailVerificationByHash,
   insertSession,
-  insertUserAccount,
+  registerUserAtomically,
   revokeSessionById,
 } from '../db/queries/auth.queries';
 import { isAllowedEmailDomain, recordSecurityEvent } from '../db/queries/security.queries';
 import { generateSecureToken, hashPassword, sha256Hex } from '../lib/crypto';
-import { ValidationError } from '../lib/errors';
+import { ConflictError, ValidationError } from '../lib/errors';
 import { createSecurityHeaders, jsonSuccess } from '../lib/response';
 import type { ApiRouter } from '../lib/router';
 import {
@@ -38,6 +39,10 @@ interface RegisterPayload {
   email?: unknown;
   password?: unknown;
   turnstileToken?: unknown;
+}
+
+interface VerifyEmailPayload {
+  token?: unknown;
 }
 
 export function registerAuthRoutes(router: ApiRouter): void {
@@ -153,38 +158,37 @@ export function registerAuthRoutes(router: ApiRouter): void {
 
     const passwordHash = await hashPassword(password, ctx.env.PASSWORD_PEPPER);
     const userId = crypto.randomUUID();
-    const baseHandle = email.split('@')[0].replace(/[^a-z0-9_]/gi, '').slice(0, 16) || 'user';
-    const username = `${baseHandle}_${crypto.randomUUID().slice(0, 6)}`;
+    const baseHandle = email.split('@')[0].replace(/[^a-z0-9_]/gi, '').slice(0, 14) || 'user';
+    const username = `${baseHandle}_${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`;
+
+    const rawVerifyToken = generateSecureToken(24);
+    const verifyTokenHash = await sha256Hex(rawVerifyToken);
+    const verificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
     try {
-      await insertUserAccount(db, {
-        id: userId,
+      await registerUserAtomically(db, {
+        userId,
         name,
         username,
         email,
         passwordHash,
+        verificationId: crypto.randomUUID(),
+        verificationTokenHash: verifyTokenHash,
+        verificationExpiresAt,
       });
-
-      const rawVerifyToken = generateSecureToken(24);
-      const verifyTokenHash = await sha256Hex(rawVerifyToken);
-      await insertEmailVerificationToken(db, {
-        id: crypto.randomUUID(),
-        userId,
-        email,
-        tokenHash: verifyTokenHash,
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-      });
-    } catch {
-      // Uniform non-enumerating acceptance or safe error without leaking account existence
-      return jsonSuccess(
-        {
-          registered: true,
-          emailVerificationPending: true,
-          emailDispatchConfigured: false,
-        },
-        ctx.requestId,
-        201,
-      );
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        await recordSecurityEvent(db, {
+          eventType: 'REGISTER_CONFLICT',
+          severity: 'low',
+          ipAddress: ip,
+          endpoint: ctx.url.pathname,
+        });
+        throw new ConflictError(
+          'Registration could not be completed with the provided details.',
+        );
+      }
+      throw error;
     }
 
     await recordSecurityEvent(db, {
@@ -199,10 +203,60 @@ export function registerAuthRoutes(router: ApiRouter): void {
       {
         registered: true,
         emailVerificationPending: true,
-        emailDispatchConfigured: false,
+        emailDeliveryAvailable: false,
+        notice:
+          'Account created. Verification email was not dispatched because no free email delivery provider is configured yet.',
       },
       ctx.requestId,
       201,
+    );
+  });
+
+  router.post('/api/v1/auth/verify-email', async (ctx) => {
+    assertSameOriginMutation(ctx.request, ctx.url);
+    const db = createDbClient(ctx.env.DB);
+    const ip = getClientIp(ctx.request);
+    const body = await parseJsonBody<VerifyEmailPayload>(ctx.request);
+
+    if (typeof body.token !== 'string' || body.token.trim().length < 16) {
+      throw new ValidationError('Invalid or expired verification token');
+    }
+
+    const tokenHash = await sha256Hex(body.token.trim());
+    const record = await findEmailVerificationByHash(db, tokenHash);
+
+    if (
+      !record ||
+      record.verified_at !== null ||
+      Date.parse(record.expires_at) <= Date.now()
+    ) {
+      await recordSecurityEvent(db, {
+        eventType: 'EMAIL_VERIFICATION_FAILED',
+        severity: 'low',
+        ipAddress: ip,
+        endpoint: ctx.url.pathname,
+      });
+      throw new ValidationError('Invalid or expired verification token');
+    }
+
+    const verified = await completeEmailVerificationAtomically(db, record.id, record.user_id);
+    if (!verified) {
+      throw new ValidationError('Invalid or expired verification token');
+    }
+
+    await recordSecurityEvent(db, {
+      eventType: 'EMAIL_VERIFIED',
+      severity: 'info',
+      userId: record.user_id,
+      ipAddress: ip,
+      endpoint: ctx.url.pathname,
+    });
+
+    return jsonSuccess(
+      {
+        verified: true,
+      },
+      ctx.requestId,
     );
   });
 
