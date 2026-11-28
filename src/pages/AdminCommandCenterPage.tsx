@@ -35,11 +35,11 @@ export default function AdminCommandCenterPage() {
       <main className="env-shell">
         <div className="container admin-citadel sci-reveal">
           <div className="sci-panel hud-brackets admin-ticker">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-              <span className="hud-chip hud-chip--cyan">MILITARY INTELLIGENCE CITADEL</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
+              <span className="hud-chip hud-chip--cyan">MILITARY INTELLIGENCE CONTROL ROOM</span>
               <span>UI PREVIEW SHELL // SAMPLE DEMO DATA ONLY</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
               <Link to="/admin/xelvor" className="btn btn-secondary">
                 Launch XELVOR UI Preview
               </Link>
@@ -78,7 +78,7 @@ export default function AdminCommandCenterPage() {
                   <span className="pub-metric-val">
                     <AnimatedCounter target={14} />
                   </span>
-                  <span className="section-desc">Demo Listings, Revisions &amp; Reviews</span>
+                  <span className="section-desc">Demo Listings &amp; Reviews</span>
                 </article>
                 <article className="sci-panel sci-panel--interactive hud-brackets pub-metric-card">
                   <span className="foundation-box__label">Verified Publishers (Sample)</span>
@@ -109,7 +109,7 @@ export default function AdminCommandCenterPage() {
                     <span className="hud-chip hud-chip--cyan">
                       UI MODULE // {activeModule.toUpperCase()}
                     </span>
-                    <h1 className="section-title" style={{ marginTop: '0.4rem' }}>
+                    <h1 className="section-title" style={{ marginTop: '0.25rem' }}>
                       {ADMIN_MODULES.find((m) => m.id === activeModule)?.label}
                     </h1>
                   </div>
@@ -124,7 +124,7 @@ export default function AdminCommandCenterPage() {
                       <strong>Admin Command UI Shell (Demo Preview)</strong>
                       <p className="section-desc">
                         Visual layout preview only. Live D1 queries, TOTP 2FA enforcement, and
-                        append-only audit writes will be implemented in Milestones 2B–2C.
+                        append-only audit writes connect in Milestones 2B–2C.
                       </p>
                     </div>
                     <span className="hud-chip hud-chip--warn">LOGS &amp; API PENDING 2B/2C</span>
@@ -135,9 +135,7 @@ export default function AdminCommandCenterPage() {
                   <div className="admin-row">
                     <div>
                       <strong>Demo Record: nadia.r@example.invalid</strong>
-                      <p className="section-desc">
-                        Sample Role: User • Demo Status: Active (Static Placeholder)
-                      </p>
+                      <p className="section-desc">Sample Role: User • Demo Status: Active</p>
                     </div>
                     <div className="admin-row__actions">
                       <span className="hud-chip hud-chip--warn">ROLE CONTROLS PENDING 2C</span>
@@ -151,8 +149,7 @@ export default function AdminCommandCenterPage() {
                     <div>
                       <strong>Demo Record: Kestrel Sec Labs (Sample Publisher)</strong>
                       <p className="section-desc">
-                        Admin grant and instant backend permission revocation will be wired in
-                        Milestones 2B–2C.
+                        Admin grant and instant backend permission revocation connect in 2B–2C.
                       </p>
                     </div>
                     <span className="hud-chip hud-chip--warn">BACKEND GUARD PENDING 2B/2C</span>
@@ -164,8 +161,7 @@ export default function AdminCommandCenterPage() {
                     <div>
                       <strong>Demo Queue Item: PacketGuard DNS (Sample App)</strong>
                       <p className="section-desc">
-                        UI placeholder for New Listings, Post Revisions, New Reviews &amp; Review
-                        Revisions.
+                        UI placeholder for New Listings, Post Revisions, New Reviews &amp; Review Revisions.
                       </p>
                     </div>
                     <span className="hud-chip hud-chip--warn">DEMO PENDING QUEUE</span>
@@ -177,8 +173,7 @@ export default function AdminCommandCenterPage() {
                     <div>
                       <strong>Three-Level Ban Matrix (UI Placeholder)</strong>
                       <p className="section-desc">
-                        Planned support for Login Ban (Temp/Perm), Posting Ban, and IP Security Ban
-                        with fast Unban.
+                        Planned Login Ban (Temp/Perm), Posting Ban, and IP Security Ban with fast Unban.
                       </p>
                     </div>
                     <span className="hud-chip hud-chip--warn">ENFORCEMENT PENDING 2B/2C</span>
@@ -202,8 +197,7 @@ export default function AdminCommandCenterPage() {
                     <div>
                       <strong>Platform Growth &amp; Rating Telemetry (Demo Preview)</strong>
                       <p className="section-desc">
-                        UI placeholder. Real aggregated D1 analytics will be connected in Milestone
-                        2C.
+                        UI placeholder. Real aggregated D1 analytics connect in Milestone 2C.
                       </p>
                     </div>
                     <span className="hud-chip hud-chip--warn">D1 INTEGRATION PENDING 2C</span>
