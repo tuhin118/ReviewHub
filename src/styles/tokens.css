@@ -1,25 +1,26 @@
 :root {
-  /* Black + Neon Green Cyber/Hacker Surface Hierarchy */
-  --bg-canvas: #030605;
-  --bg-surface: #070d0a;
-  --bg-glass-primary: rgba(8, 15, 12, 0.86);
-  --bg-glass-elevated: rgba(11, 20, 16, 0.94);
-  --bg-glass-fallback: #0a120e;
-  --bg-input: rgba(5, 10, 8, 0.92);
+  /* Pure Black + Dark Emerald + Neon Green Core (Homepage Safe — Zero Cyan) */
+  --bg-canvas: #020705;
+  --bg-surface: #07140f;
+  --bg-glass-primary: rgba(6, 16, 12, 0.88);
+  --bg-glass-elevated: rgba(9, 22, 16, 0.94);
+  --bg-glass-fallback: #07130e;
+  --bg-input: rgba(3, 10, 7, 0.94);
 
-  /* Neon Green Primary Theme (No Blue Primary Accent) */
-  --neon-green: #00ff88;
-  --neon-green-soft: #10f5a0;
-  --neon-green-dim: rgba(0, 255, 136, 0.14);
-  --neon-green-tint: rgba(16, 245, 160, 0.08);
-  --border-subtle: rgba(16, 245, 160, 0.16);
-  --border-strong: rgba(0, 255, 136, 0.48);
+  /* Brighter Neon Green Lighting & Borders */
+  --neon-green: #20ff9a;
+  --neon-green-soft: #58ffb3;
+  --emerald-accent: #00b86b;
+  --neon-green-dim: rgba(32, 255, 154, 0.16);
+  --neon-green-tint: rgba(32, 255, 154, 0.08);
+  --border-subtle: rgba(32, 255, 154, 0.2);
+  --border-strong: rgba(32, 255, 154, 0.54);
 
-  /* Typography Hierarchy (WCAG AA+ Contrast) */
-  --text-primary: #f8fafc;
-  --text-secondary: #d1ddd6;
-  --text-muted: #93aba0;
-  --text-on-neon: #030605;
+  /* High-Contrast Typography */
+  --text-primary: #f6fbf8;
+  --text-secondary: #cfded6;
+  --text-muted: #8ea89b;
+  --text-on-neon: #020a06;
 
   /* Semantic Indicators */
   --star-amber: #f59e0b;
@@ -31,15 +32,15 @@
   --font-body: 'Inter', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Layout & Radius */
-  --container-max: 1320px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  /* Compact Layout & Spacing Tokens */
+  --container-max: 1360px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-pill: 9999px;
 
-  /* Subtle Depth & Elevation */
-  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.48);
-  --shadow-neon: 0 0 24px rgba(0, 255, 136, 0.14);
-  --transition-fast: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Atmospheric Depth */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-neon: 0 0 22px rgba(32, 255, 154, 0.18);
+  --transition-fast: 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
