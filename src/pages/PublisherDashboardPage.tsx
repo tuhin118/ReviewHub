@@ -37,7 +37,7 @@ export default function PublisherDashboardPage() {
   const [draftCategory, setDraftCategory] = useState('Security & Privacy');
   const [draftUrl, setDraftUrl] = useState('https://cipherpulse.example.invalid');
   const [draftTagline, setDraftTagline] = useState(
-    'Sample preview description for the Milestone 2A publisher UI shell.',
+    'Sample preview description for the compact publisher UI shell.',
   );
 
   return (
@@ -47,12 +47,24 @@ export default function PublisherDashboardPage() {
       <main className="env-shell">
         <div className="container pub-shell sci-reveal">
           <header className="sci-panel pub-flightbar">
-            <div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.45rem' }}>
-                <span className="hud-chip">ORBITAL SUBMISSION DECK</span>
-                <span className="hud-chip hud-chip--warn">STATIC UI PREVIEW // API PENDING 2C</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <svg
+                className="env-svg-emblem"
+                style={{ width: '48px', height: '40px' }}
+                viewBox="0 0 64 56"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path d="M12 40L32 10L52 40H12Z" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="32" cy="30" r="4" fill="#20ff9a" />
+              </svg>
+              <div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.3rem' }}>
+                  <span className="hud-chip">PUBLISHING COMMAND CENTER</span>
+                  <span className="hud-chip hud-chip--warn">STATIC UI PREVIEW // API PENDING 2C</span>
+                </div>
+                <h1 className="foundation-title">Verified Publisher Workspace</h1>
               </div>
-              <h1 className="foundation-title">Verified Publisher Workspace</h1>
             </div>
 
             <nav className="pub-tabs" aria-label="Publisher Deck Sections">
@@ -110,11 +122,7 @@ export default function PublisherDashboardPage() {
             <section className="sci-panel admin-table-card sci-reveal" aria-label="Publisher Demo Listings">
               <div className="foundation-card__header">
                 <h2 className="section-title">Sample Listings &amp; Approval States (Demo)</h2>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setActiveTab('submit')}
-                >
+                <button type="button" className="btn btn-primary" onClick={() => setActiveTab('submit')}>
                   Open Submission Form Preview
                 </button>
               </div>
@@ -123,22 +131,15 @@ export default function PublisherDashboardPage() {
                   <div>
                     <strong>{post.title}</strong>
                     <p className="section-desc">
-                      {post.type} • Demo Views: {post.views.toLocaleString()} • Demo Rating:{' '}
-                      {post.rating}
+                      {post.type} • Demo Views: {post.views.toLocaleString()} • Demo Rating: {post.rating}
                     </p>
                   </div>
                   <div className="admin-row__actions">
-                    <span
-                      className={`hud-chip ${post.status.includes('Pending') ? 'hud-chip--warn' : ''}`}
-                    >
+                    <span className={`hud-chip ${post.status.includes('Pending') ? 'hud-chip--warn' : ''}`}>
                       {post.status}
                     </span>
                     <span className="hud-chip hud-chip--cyan">{post.revisionStatus}</span>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setActiveTab('revisions')}
-                    >
+                    <button type="button" className="btn btn-secondary" onClick={() => setActiveTab('revisions')}>
                       Preview Revision UI
                     </button>
                   </div>
@@ -149,20 +150,13 @@ export default function PublisherDashboardPage() {
 
           {activeTab === 'submit' && (
             <section className="pub-split sci-reveal" aria-label="Listing Submission Studio Preview">
-              <form
-                className="sci-panel pub-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
+              <form className="sci-panel pub-form" onSubmit={(e) => e.preventDefault()}>
                 <div className="foundation-card__header">
                   <h2 className="section-title">Submit App / Website (UI Preview)</h2>
                   <span className="hud-chip hud-chip--warn">PLANNED DEFAULT: PENDING</span>
                 </div>
                 <div className="pub-field">
-                  <label className="pub-label" htmlFor="pub-title">
-                    Listing Title
-                  </label>
+                  <label className="pub-label" htmlFor="pub-title">Listing Title</label>
                   <input
                     id="pub-title"
                     className="sci-input"
@@ -172,9 +166,7 @@ export default function PublisherDashboardPage() {
                 </div>
                 <div className="foundation-grid">
                   <div className="pub-field">
-                    <label className="pub-label" htmlFor="pub-type">
-                      Platform Type
-                    </label>
+                    <label className="pub-label" htmlFor="pub-type">Platform Type</label>
                     <select
                       id="pub-type"
                       className="sci-select"
@@ -186,9 +178,7 @@ export default function PublisherDashboardPage() {
                     </select>
                   </div>
                   <div className="pub-field">
-                    <label className="pub-label" htmlFor="pub-cat">
-                      Category
-                    </label>
+                    <label className="pub-label" htmlFor="pub-cat">Category</label>
                     <input
                       id="pub-cat"
                       className="sci-input"
@@ -198,9 +188,7 @@ export default function PublisherDashboardPage() {
                   </div>
                 </div>
                 <div className="pub-field">
-                  <label className="pub-label" htmlFor="pub-url">
-                    Sample HTTPS URL
-                  </label>
+                  <label className="pub-label" htmlFor="pub-url">Sample HTTPS URL</label>
                   <input
                     id="pub-url"
                     className="sci-input"
@@ -209,9 +197,7 @@ export default function PublisherDashboardPage() {
                   />
                 </div>
                 <div className="pub-field">
-                  <label className="pub-label" htmlFor="pub-tagline">
-                    Short Description
-                  </label>
+                  <label className="pub-label" htmlFor="pub-tagline">Short Description</label>
                   <textarea
                     id="pub-tagline"
                     className="sci-textarea"
@@ -220,8 +206,7 @@ export default function PublisherDashboardPage() {
                   />
                 </div>
                 <p className="telemetry-note">
-                  Local draft preview only. Backend submission API and publisher permission
-                  verification will connect in Milestone 2C.
+                  Local draft preview only. Backend submission API and publisher permission checks connect in Milestone 2C.
                 </p>
               </form>
 
@@ -231,15 +216,13 @@ export default function PublisherDashboardPage() {
                   <span className="cyber-badge cyber-badge--muted">
                     {draftType === 'app' ? 'ANDROID APP' : 'WEBSITE'} • {draftCategory}
                   </span>
-                  <h3 className="item-card__title" style={{ marginTop: '0.4rem' }}>
+                  <h3 className="item-card__title" style={{ marginTop: '0.3rem' }}>
                     {draftTitle || 'Untitled Listing'}
                   </h3>
                   <p className="section-desc">{draftTagline}</p>
                   <span className="telemetry-note">Sample Domain: {draftUrl}</span>
                 </div>
-                <Link to="/nexora" className="btn btn-secondary">
-                  Open NEXORA UI Preview
-                </Link>
+                <Link to="/nexora" className="btn btn-secondary">Open NEXORA UI Preview</Link>
               </aside>
             </section>
           )}
@@ -250,16 +233,14 @@ export default function PublisherDashboardPage() {
                 <span className="hud-chip">SAMPLE PUBLIC VERSION (DEMO)</span>
                 <h3>AegisGrid Vault v1.0 (Demo)</h3>
                 <p className="section-desc">
-                  Demonstrates the planned revision behavior: an approved version remains visible to
-                  guests until Admin approves the pending edit.
+                  Approved version remains visible to guests until Admin approves the pending edit.
                 </p>
               </div>
               <div className="sci-panel pub-preview-card">
                 <span className="hud-chip hud-chip--warn">SAMPLE PENDING REVISION (DEMO)</span>
                 <h3>AegisGrid Vault v1.1 (Demo Edit)</h3>
                 <p className="section-desc">
-                  Sample pending edit card. Real revision storage and moderation will connect in
-                  Milestone 2C.
+                  Sample pending edit card. Real revision storage and moderation connect in Milestone 2C.
                 </p>
               </div>
             </section>
@@ -277,8 +258,7 @@ export default function PublisherDashboardPage() {
                 ))}
               </div>
               <p className="telemetry-note">
-                Placeholder sparkline only. Real per-listing D1 analytics will connect in Milestone
-                2C.
+                Placeholder sparkline only. Real per-listing D1 analytics connect in Milestone 2C.
               </p>
             </section>
           )}
