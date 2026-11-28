@@ -1,6 +1,11 @@
-import { ServiceUnavailableError } from '../lib/errors';
+import { ConflictError, ServiceUnavailableError } from '../lib/errors';
 
 export type SqlParam = string | number | null;
+
+function isUniqueConstraintError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /UNIQUE constraint failed/i.test(message);
+}
 
 export class D1Client {
   private readonly db: D1Database;
@@ -12,19 +17,26 @@ export class D1Client {
     this.db = db;
   }
 
+  prepare(sql: string, params: readonly SqlParam[] = []): D1PreparedStatement {
+    return this.db.prepare(sql).bind(...params);
+  }
+
   async queryFirst<T>(sql: string, params: readonly SqlParam[] = []): Promise<T | null> {
     try {
-      const statement = this.db.prepare(sql).bind(...params);
+      const statement = this.prepare(sql, params);
       const result = await statement.first<T>();
       return result ?? null;
-    } catch {
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ConflictError('A conflicting record already exists');
+      }
       throw new ServiceUnavailableError('Database read operation failed');
     }
   }
 
   async queryAll<T>(sql: string, params: readonly SqlParam[] = []): Promise<T[]> {
     try {
-      const statement = this.db.prepare(sql).bind(...params);
+      const statement = this.prepare(sql, params);
       const result = await statement.all<T>();
       return result.results ?? [];
     } catch {
@@ -34,10 +46,24 @@ export class D1Client {
 
   async execute(sql: string, params: readonly SqlParam[] = []): Promise<D1Result> {
     try {
-      const statement = this.db.prepare(sql).bind(...params);
+      const statement = this.prepare(sql, params);
       return await statement.run();
-    } catch {
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ConflictError('A conflicting record already exists');
+      }
       throw new ServiceUnavailableError('Database write operation failed');
+    }
+  }
+
+  async batch(statements: readonly D1PreparedStatement[]): Promise<D1Result[]> {
+    try {
+      return await this.db.batch([...statements]);
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ConflictError('A conflicting record already exists');
+      }
+      throw new ServiceUnavailableError('Database atomic batch failed');
     }
   }
 
