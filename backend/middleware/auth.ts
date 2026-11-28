@@ -1,10 +1,10 @@
 import {
-  clearFailedLoginState,
+  clearFailedLoginIfUnlocked,
   findActiveSessionUser,
   findUserForLogin,
+  recordFailedLoginAttemptAtomic,
   revokeAllSessionsForUser,
   revokeSessionById,
-  updateFailedLoginState,
 } from '../db/queries/auth.queries';
 import { getUserPermissionCodes } from '../db/queries/admin.queries';
 import {
@@ -23,8 +23,6 @@ import {
 import type { ApiRequestContext, AuthenticatedUser, Env } from '../types/env';
 
 const SESSION_COOKIE_NAME = 'rh_session';
-const LOCK_THRESHOLD = 5;
-const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 export function getClientIp(request: Request): string {
   return request.headers.get('CF-Connecting-IP')?.trim() || 'unknown';
@@ -59,14 +57,40 @@ export function buildClearSessionCookieHeader(requestUrl: URL): string {
   return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureFlag}`;
 }
 
+/**
+ * Enforces strict same-origin CSRF protection on all state-changing requests.
+ * Rejects missing or mismatched Origin (with same-origin Referer fallback only if Origin is absent).
+ */
 export function assertSameOriginMutation(request: Request, url: URL): void {
   const method = request.method.toUpperCase();
   if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return;
 
-  const origin = request.headers.get('Origin');
-  if (origin && origin !== url.origin) {
-    throw new ForbiddenError('Cross-origin state-changing request rejected');
+  const secFetchSite = request.headers.get('Sec-Fetch-Site');
+  if (secFetchSite && secFetchSite !== 'same-origin' && secFetchSite !== 'none') {
+    throw new ForbiddenError('Cross-site state-changing request rejected');
   }
+
+  const origin = request.headers.get('Origin');
+  if (origin) {
+    if (origin !== url.origin) {
+      throw new ForbiddenError('Origin mismatch on state-changing request');
+    }
+    return;
+  }
+
+  const referer = request.headers.get('Referer');
+  if (referer) {
+    try {
+      const refUrl = new URL(referer);
+      if (refUrl.origin === url.origin) {
+        return;
+      }
+    } catch {
+      throw new ForbiddenError('Invalid Referer header on state-changing request');
+    }
+  }
+
+  throw new ForbiddenError('Missing Origin header on state-changing request');
 }
 
 export async function verifyTurnstileIfConfigured(
@@ -220,7 +244,6 @@ export async function authenticateCredentialsWithLockout(
   const nowMs = Date.now();
   const lockedUntilMs = user.locked_until ? Date.parse(user.locked_until) : 0;
 
-  // Enforce 15-minute lock even if password is correct
   if (lockedUntilMs > nowMs) {
     await recordSecurityEvent(db, {
       eventType: 'LOGIN_ATTEMPT_DURING_LOCK',
@@ -233,24 +256,22 @@ export async function authenticateCredentialsWithLockout(
     throw new UnauthorizedError(genericErrorMessage);
   }
 
-  // Reset counter once lock window has expired
-  const activeAttempts = lockedUntilMs > 0 && lockedUntilMs <= nowMs ? 0 : user.failed_login_attempts;
-
   const passwordValid = await verifyPassword(password, user.password_hash, env.PASSWORD_PEPPER);
 
   if (!passwordValid) {
-    const nextAttempts = activeAttempts + 1;
-    const shouldLock = nextAttempts >= LOCK_THRESHOLD;
-    const lockUntil = shouldLock ? new Date(nowMs + LOCK_DURATION_MS).toISOString() : null;
+    const updated = await recordFailedLoginAttemptAtomic(db, user.id);
+    const lockedNow = updated?.locked_until !== null && updated !== null;
 
-    await updateFailedLoginState(db, user.id, nextAttempts, lockUntil);
     await recordSecurityEvent(db, {
-      eventType: shouldLock ? 'ACCOUNT_LOCKED_15M' : 'LOGIN_FAILED',
-      severity: shouldLock ? 'high' : 'low',
+      eventType: lockedNow ? 'ACCOUNT_LOCKED_15M' : 'LOGIN_FAILED',
+      severity: lockedNow ? 'high' : 'low',
       userId: user.id,
       ipAddress,
       endpoint,
-      details: { failedAttempts: nextAttempts, locked: shouldLock },
+      details: {
+        failedAttempts: updated?.failed_login_attempts ?? 5,
+        locked: lockedNow,
+      },
     });
 
     throw new UnauthorizedError(genericErrorMessage);
@@ -268,8 +289,17 @@ export async function authenticateCredentialsWithLockout(
     throw new UnauthorizedError(genericErrorMessage);
   }
 
-  if (user.failed_login_attempts > 0 || user.locked_until !== null) {
-    await clearFailedLoginState(db, user.id);
+  const unlockedAndCleared = await clearFailedLoginIfUnlocked(db, user.id);
+  if (!unlockedAndCleared) {
+    await recordSecurityEvent(db, {
+      eventType: 'LOGIN_REJECTED_CONCURRENT_LOCK',
+      severity: 'medium',
+      userId: user.id,
+      ipAddress,
+      endpoint,
+      details: { locked: true },
+    });
+    throw new UnauthorizedError(genericErrorMessage);
   }
 
   return {
